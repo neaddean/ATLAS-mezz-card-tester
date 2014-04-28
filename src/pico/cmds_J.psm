@@ -1,0 +1,544 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name           | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | CMD_JTAG_WRITE | x  |    |    |    |    |    |    |    |    |    |    |    |
+;;; | CMD_JTAG_READ  | x  |    |    |    |    |    |    |    |    |    |    |    |
+	
+
+CMD_JTAG_WRITE:
+	FETCH	s0,  CLI_WORD_1
+	OUTPUT	s0,  JTAG_PORT
+
+	RETURN
+
+CMD_JTAG_READ:
+	INPUT	s0, JTAG_PORT
+	CALL	util_print_hex_byte
+	CALL 	util_print_EOL
+
+	RETURN
+
+CMD_JTAG_TDO:
+	;;  load TDO
+	FETCH	s1, CLI_WORD_1_SIZE 
+	STORE	s1, TDO_SIZE	; save tdo size
+
+	;; load tdo -> sB-sE
+	LOAD	s0, CLI_WORD_1
+	ADD	s0, 03
+	FETCH	sB, (s0)
+	SUB	s0, 01
+	FETCH	sC, (s0)
+	SUB	s0, 01
+	FETCH	sD, (s0)
+	SUB	s0, 01
+	FETCH	sE, (s0)
+
+	;; ;; shift tdo to the right
+;; 	LOAD	s0, 08
+;; 	SUB	s0, s1
+;; align_tdo:
+;; 	JUMP	Z, align_tdo_done
+;; 	CALL 	shift_tdo
+;; 	CALL	shift_tdo
+;; 	CALL	shift_tdo
+;; 	CALL	shift_tdo
+
+;; 	sub	s0, 01
+;; 	JUMP	align_tdo
+align_tdo_done:	
+	;; transfer to TDO_REG
+	LOAD	s1, TDO_REG
+load_tdo:	
+	STORE	sB, (s1)
+	ADD	s1, 01
+	STORE	sC, (s1)
+	ADD	s1, 01
+	STORE	sD, (s1)
+	ADD	s1, 01
+	STORE	sE, (s1)
+
+	RETURN			; return from CMD_JTAG_TDO
+
+CMD_JTAG_TMS:
+	;; ensure that tdo and tms will be the same size!
+	FETCH	s0, TDO_SIZE
+	FETCH	s5, CLI_WORD_1_SIZE
+
+	COMPARE s0, s5
+
+	JUMP	NZ, JTAG_LENGTH_ERROR 
+
+	;; load TDO_REG -> sB-sE
+	LOAD	s0, TDO_REG
+	FETCH	sB, (s0)
+	ADD	s0, 01
+	FETCH	sC, (s0)
+	ADD	s0, 01
+	FETCH	sD, (s0)
+	ADD	s0, 01
+	FETCH	sE, (s0)
+
+	;; load the TMS word into s7-sA
+	LOAD	s0, CLI_WORD_1
+	ADD	s0, 03
+	FETCH	s6, (s0)
+	SUB	s0, 01
+	FETCH	s7, (s0)
+	SUB	s0, 01
+	FETCH	s8, (s0)
+	SUB	s0, 01
+	FETCH	s9, (s0)
+
+	;; ;; shift tms to the right
+;; 	LOAD	s0, 08
+;; 	SUB	s0, s5
+;; align_tms:
+;; 	JUMP	Z, align_tms_done
+;; 	CALL 	shift_tms
+;; 	CALL	shift_tms
+;; 	CALL	shift_tms
+;; 	CALL	shift_tms
+
+;; 	sub	s0, 01
+;; 	JUMP	align_tms
+align_tms_done:	
+	;; ;; transfer to TDO_REG
+	;; LOAD	s1, TDO_REG
+	
+	;; shift TDO into place on sF: XXXX XXX0
+	CALL 	shift_tdo
+
+	;; shift TMS into place on sA: XXXX X0XX
+	CALL 	shift_tms
+	CALL 	shift_tms
+	CALL 	shift_tms
+
+	LOAD	s1, 00		; tdo temp reg
+	LOAD	s2, 00		; tms temp reg
+	;; s5 already contains the nibble count
+
+jtag_loop_with_read:
+	CALL	do_jtag
+	CALL	jtag_get_tdi
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	jtag_get_tdi
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	jtag_get_tdi
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	jtag_get_tdi
+	CALL	shift_tdo
+	CALL	shift_tms
+
+	REGBANK	B
+	LOAD	s1, " "
+	CALL	uart_output_wait
+	OUTPUT	s1, UART_OUTPUT
+	REGBANK A
+
+	sub	s5, 01
+	JUMP	NZ, jtag_loop_with_read
+	
+	CALL 	util_print_EOL
+	RETURN			; exit CMD_JTAG_TMS 
+
+do_jtag:
+	LOAD	s4, 00 		; clear JTAG register
+	
+	LOAD	s1, sF		; load tdo into its temp reg
+	AND	s1, 01		; 0 out all bits except the tdo bit (if it is set)
+
+	LOAD	s2, sA		; load tms into its temp reg
+	AND 	s2, 04		; 0 out all bits expcept the tms bit (if it is set)
+
+	OR	s4, s1		; load tdo bit into jtag reg
+	OR	s4, s2		; load tms bit into jtag reg
+
+	CALL	jtag_clk
+
+	RETURN
+	
+jtag_get_tdi:	
+	REGBANK B			; switch to REGBANK B to preserve registers
+	CALL uart_output_wait
+	INPUT 	s0, JTAG_PORT		; perform a jtag read
+	COMPARE	s0, 01			; test tdi
+	JUMP	NZ, tdi_low		; if low
+	
+tdi_high:
+	LOAD	s0, "1"
+	JUMP	send_tdi
+	
+tdi_low:
+	LOAD	s0, "0"
+
+send_tdi:	
+	OUTPUT	s0, UART_OUTPUT
+	
+	REGBANK A			; return to main REGBANK
+
+	RETURN
+
+shift_tdo:
+	SR0 sB 			
+	SRA sC
+	SRA sD
+	SRA sE
+	SLA sF
+	RETURN
+
+shift_tms:
+	SR0 s6
+	SRA s7
+	SRA s8
+	SRA s9
+	SLA sA
+	RETURN
+
+jtag_clk:
+	OUTPUT	s4, JTAG_PORT	; output with clock low
+	CALL 	do_jtag_delay
+	OR	s4, 02		; make clock high
+	OUTPUT s4, JTAG_PORT 	; output with clock high
+	AND	s4, 0D		; make clock low
+	CALL	do_jtag_delay
+	RETURN
+	
+do_jtag_delay:
+	LOAD s0, 19		; 1 us delay
+jtag_delay:
+	SUB s0, 01
+	JUMP NZ, jtag_delay
+	RETURN
+
+STRING JTAG_LENGTH_ERROR$, "ERROR: TMS and TDO lengths do not match"
+JTAG_LENGTH_ERROR_STRING:
+	LOAD&RETURN s1, JTAG_LENGTH_ERROR$
+	LOAD&RETURN s1, 00
+JTAG_LENGTH_ERROR:
+	LOAD	sB, JTAG_LENGTH_ERROR_STRING'upper
+	LOAD	sA, JTAG_LENGTH_ERROR_STRING'lower
+	CALL 	util_print_string
+	CALL	util_print_EOL
+	RETURN
+
+
+CMD_JTAG_JTW:
+	;; s4 : register number
+	FETCH	s4, CLI_WORD_1
+	;; s5 : pointer to CSR reg
+	LOAD	s5, CSR_BLOCK
+
+	CALL	add_to_CSR_reg
+
+	;; s4 : CLI_WORD_2 pointer
+	LOAD	s4, CLI_WORD_2
+	;; s3 : LSB of CLI_WORD_2
+	;; s2 : s3 is shifted into this and then ored with
+	;; MSB of CLI_WORD_2
+	LOAD	s2, 00
+	FETCH	s3, (s4)
+	
+	SL0	s3
+	SLA	s2
+
+	SL0	s3
+	SLA	s2
+	
+	SL0	s3
+	SLA	s2
+	
+	SL0	s3
+	SLA 	s2
+
+	ADD	s4, 01
+	FETCH	s4, (s4)
+	SL0	s4
+	SL0	s4
+	SL0	s4
+	SL0	s4
+	OR	s2, s4
+	
+	;; store CLI_WORD_2 -> CSR reg
+	STORE	s2, (s5)
+	ADD	s5, 01
+	STORE	s3, (s5)
+
+	RETURN
+	
+CMD_JTAG_JTR:
+	;; s4 : register number
+	FETCH	s4, CLI_WORD_1
+	;; s5 : pointer to CSR reg
+	LOAD	s5, CSR_BLOCK
+	CALL	add_to_CSR_reg
+	FETCH	s0, (s5)		; fetch msb of CSR reg
+	CALL	util_print_hex_byte	; print to screen
+	ADD	s5, 01			; increment pointer
+	FETCH	s0, (s5)		; fetch lsb of CSR reg
+	CALL	util_byte_to_hex
+	CALL	uart_output_wait
+	OUTPUT	s2, UART_OUTPUT
+	;; CALL	util_print_hex_byte	; print to screen
+	CALL	util_print_EOL
+	RETURN
+
+	;; s4 is register number
+	;; s5 is poitner to CSR reg
+add_to_CSR_reg:
+	COMPARE	s4, 00
+	RETURN	Z
+	ADD	s5, 01
+	ADD	s5, 01
+	SUB	s4, 01
+	JUMP	add_to_CSR_reg
+	RETURN
+
+CMD_JTAG_JTU:
+	;; first we will JTAG in the CONTROL command and wait at data shift
+	LOAD	sD, 03
+	LOAD	sE, 00
+	LOAD	s8, 26		
+	LOAD	s9, 06
+	LOAD	s5, 04 		; number of nibbles nebing shifted
+
+	CALL	jtag_no_read
+	
+	LOAD	s4, CSR_BLOCK
+
+load_csr_loop:
+	
+	LOAD	s6, 00
+	STAR	s8, s6
+	STAR	s9, s6
+
+	FETCH	s6, (s4)
+	
+	ADD	s4, 01		; increment CSR pointer
+	FETCH	s7, (s4)
+
+	SR0	s6
+	SRA	s7
+	SR0	s6
+	SRA	s7
+	SR0	s6
+	SRA	s7
+	SR0	s6
+	SRA	s7
+	
+	STAR	sD, s6
+	STAR	sE, s7
+
+	REGBANK B
+	LOAD	s5, 03
+	CALL	jtag_no_read
+	REGBANK A
+	
+	ADD	s4, 01 		; increment CSR pointer
+	COMPARE	s4, 61		; end of CSR block
+
+	JUMP	NZ, load_csr_loop
+	
+	FETCH	s6, (s4)
+	
+	ADD	s4, 01		; increment CSR pointer
+	FETCH	s7, (s4)
+
+	SR1	s6
+	SRA	s7
+	SR1	s6
+	SRA	s7
+	SR1	s6
+	SRA	s7
+	SR1	s6
+	SRA	s7
+
+	
+	LOAD	sC, FF
+	LOAD	sD, s6
+	LOAD	sE, s7
+	LOAD	s9, 00
+	LOAD	s8, F8
+	LOAD	s7, FF
+	LOAD	s5, 06 		; number of nibbles being shifted
+
+	CALL	jtag_no_read
+
+	RETURN			; EXIT CMD_JTAG_JTU
+
+jtag_no_read:
+	;; shift TDO into place on sF: XXXX XXX0
+	CALL 	shift_tdo
+
+	;; shift TMS into place on sA: XXXX X0XX
+	CALL 	shift_tms
+	CALL 	shift_tms
+	CALL 	shift_tms
+
+	LOAD	s1, 00		; tdo temp reg
+	LOAD	s2, 00		; tms temp reg
+	
+jtag_loop:	
+	CALL	do_jtag
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	CALL	do_jtag
+	CALL	shift_tdo
+	CALL	shift_tms
+	
+	sub	s5, 01
+	JUMP	NZ, jtag_loop
+	
+	RETURN			; exit CMD_JTAG_TMS
+
+CMD_JTAG_JTG:
+	
+;; first we will JTAG in the CONTROL command and wait at data shift
+	LOAD	sD, 03
+	LOAD	sE, 00
+	LOAD	s8, 26		
+	LOAD	s9, 06
+	LOAD	s5, 04 		; number of nibbles nebing shifted
+
+	CALL	jtag_no_read
+		
+	;; LOAD	s4, 00
+	;; CALL	jtag_clk
+	
+	LOAD	s6, CSR_BLOCK
+	
+jtag_get_loop:	
+	LOAD	s8, 00
+	LOAD	s9, 00
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+
+	LOAD	s9, s8		; store first byte into s9
+	LOAD	s8, 00
+
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+
+	STORE	s8, (s6)
+	ADD	s6, 01
+
+	STORE	s9, (s6)
+
+	CALL	util_print_EOL
+
+	ADD	s6, 01 		; increment CSR pointer
+	COMPARE	s6, 63		; end of CSR block
+
+	JUMP	NZ, jtag_get_loop
+
+	;; LOAD	s4, 00
+	;; CALL	jtag_clk
+	
+	CALL	util_print_EOL
+
+	LOAD	s4, CSR_BLOCK
+	
+	JUMP	load_csr_loop	; exit CMD_JTAG_JTG
+
+	
+
+CMD_JTAG_JTS:
+	
+;; first we will JTAG in the CONTROL command and wait at data shift
+	LOAD	sD, 01
+	LOAD	sE, 40
+	LOAD	s8, 26		
+	LOAD	s9, 06
+	LOAD	s5, 04 		; number of nibbles nebing shifted
+	
+	CALL	jtag_no_read
+	
+	LOAD	sC, 06		; counter register
+jtag_status_loop:	
+	LOAD	s8, 00
+	LOAD	s9, 00
+	
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+
+	LOAD	s9, s8		; store first byte into s9
+	LOAD	s8, 00
+		
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+	CALL	jtag_read
+
+	CALL	util_print_EOL
+	LOAD	s0, s8		; recall and print s9
+	CALL	util_byte_to_hex
+	CALL	uart_output_wait
+	OUTPUT	s2, UART_OUTPUT
+	LOAD	s0, s9		; recall and print s8
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+
+	SUB	sC, 01
+	JUMP	NZ, jtag_status_loop
+	
+	JUMP	jtag_finish	; exit CMD_JTAG_JTS
+
+
+	;; this will shift the TDI bit-by-bit onto s8
+jtag_read:	
+	LOAD	s4, 00
+	CALL	jtag_clk
+	INPUT	s5, JTAG_PORT
+	LOAD	s0, s5
+	CALL	util_byte_to_hex
+	CALL	uart_output_wait
+	OUTPUT	s1, UART_OUTPUT
+	SR0	s5
+	SRA	s8
+	RETURN
+	
+jtag_finish:
+	;; LOAD	sD, 00
+	LOAD	sE, 00
+	LOAD	s8, ff
+	LOAD	s9, 01
+	LOAD	s5, 04 		; number of nibbles being shifted
+
+	CALL	jtag_no_read
+	
+	RETURN

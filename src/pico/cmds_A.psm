@@ -1,0 +1,114 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name          | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | CMD_READ_ADC  | x  |    |    |    |    |    |    |    |    |    |    |    |
+
+;;; ============================================================================
+;;; Print Help functions
+	;; uses sA-sB, s1
+;;; ============================================================================
+
+CMD_ADC_READ:
+	;; FETCH	s0, CLI_COUNT
+	;; CALL	util_print_hex_byte
+	;; CALL	util_print_EOL
+	;; FETCH	s0, CLI_WORD_1_POS
+	;; CALL	util_print_hex_byte
+	;; CALL	util_print_EOL
+	;; FETCH	s0,CLI_WORD_1
+	;; CALL	util_print_hex_byte
+	;; CALL	util_print_EOL
+	
+	FETCH	s3, CLI_COUNT ; check if there are no arguments
+	COMPARE	s3, 00
+	JUMP	Z, adc_seq
+
+	FETCH	s4, CLI_WORD_1
+	COMPARE	s4, 04
+	JUMP	NC, sel_adc2 	; if greater than  or equal to 4, we must use select the second adc
+sel_adc1:
+	LOAD	s0, 00
+	OUTPUT	s0, I2C_mux
+	FETCH	s4, CLI_WORD_1
+	JUMP	align_channel
+sel_adc2:
+	LOAD	s0, 01
+	OUTPUT	s0, I2C_mux
+	FETCH	s4, CLI_WORD_1
+	SUB	s4, 04		; normalize the channel to 0-3
+align_channel:
+	LOAD	s5, 10
+	COMPARE	s4, 00
+align_channel_loop:
+	JUMP	Z, channel_aligned
+	SL0	s5
+	SUB	s4, 01
+	JUMP	align_channel_loop
+channel_aligned:	
+	CALL	I2C_initialise
+	CALL	I2C_start
+	LOAD	sE, 28
+	SL0	sE 		;LSB = 0 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	;; JUMP	C, communication_fail
+	LOAD	sE, s5
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+
+	CALL 	I2C_stop
+
+	CALL	jtag_delay	; 1us delay
+
+	;; now we read
+	CALL	I2C_initialise
+	CALL	I2C_start
+	LOAD	sE, 28
+	SL1	sE 		;LSB = 1 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	;; JUMP	C, communication_fail
+	CALL	I2C_Rx_byte
+	LOAD	s3, sE
+	CALL	I2C_Tx_ACK
+	CALL	I2C_Rx_byte
+	LOAD	s4, sE
+	CALL	I2C_Tx_NACK
+	CALL	I2C_stop
+	
+	LOAD	s0, s3
+	CALL	util_print_hex_byte
+	LOAD	s0, s4
+	CALL	util_print_hex_byte
+
+	CALL	util_print_EOL
+	
+	RETURN
+
+adc_seq:
+	;; loop CLI_WORD_1 from 0 to 7 and call CMD_ADC_READ for each value
+	LOAD	s6, 01
+	STORE	s6, CLI_COUNT
+	LOAD	s6, 00
+adc_seq_loop:
+	STORE	s6, CLI_WORD_1
+	CALL	CMD_ADC_READ
+	ADD	s6, 01
+	COMPARE	s6, 08
+	JUMP	NZ, adc_seq_loop
+	RETURN
+	
+	
+STRING communication_fail$, "I2C failed to respond!"
+str_communication_fail:	
+	LOAD&RETURN s1, communication_fail$
+	LOAD&RETURN s1, 00
+communication_fail:
+	CALL I2C_initialise
+	CALL util_print_EOL		
+	LOAD sB, str_communication_fail'upper
+	LOAD sA, str_communication_fail'lower
+	CALL util_print_string
+	
+	JUMP util_print_EOL	

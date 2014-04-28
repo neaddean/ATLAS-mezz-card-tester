@@ -1,0 +1,38 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name           | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | CMD_TDC_TC     | x  |    |    |    |    |    |    |    |    |    |    |    |
+	
+CMD_TDC_TC:
+	FETCH	s0, CLI_WORD_1
+	OR	s0, 10		; to mask the strobe bit on
+	OUTPUT	s0, TDC_ENC_PORT
+	LOAD 	s0, 00
+	OUTPUT	s0, TDC_ENC_PORT
+	RETURN
+
+CMD_TDC_TZ:
+	OUTPUT	s0, FIFO_RESET
+	RETURN
+
+CMD_TDC_TF:
+	INPUT	s0, FIFO_FLAGS	
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+	RETURN
+
+CMD_TDC_TR:
+	INPUT 	s5, FIFO_FLAGS
+	COMPARE	s5, 01
+	RETURN	Z
+	INPUT	s0, FIFO_IN
+	CALL	util_print_hex_byte
+	INPUT	s0, FIFO_IN
+	CALL	util_print_hex_byte
+	INPUT	s0, FIFO_IN	
+	CALL	util_print_hex_byte
+	INPUT	s0, FIFO_IN
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+	JUMP	CMD_TDC_TR

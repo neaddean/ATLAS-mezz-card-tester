@@ -1,0 +1,53 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name          | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | CMD_READ_ADC  | x  |    |    |    |    |    |    |    |    |    |    |    |
+
+
+CMD_I2C_WRITE:
+	FETCH	s0, CLI_WORD_1
+	OUTPUT	s0, I2C_mux
+	
+	CALL	I2C_initialise
+	CALL	I2C_start
+	FETCH	sE, CLI_WORD_2
+	SL0	sE 		;LSB = 0 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	;; JUMP	C, communication_fail
+	FETCH	sE, CLI_WORD_3
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+
+	CALL I2C_stop
+
+	RETURN
+
+CMD_I2C_READ:
+	FETCH	s0, CLI_WORD_1
+	OUTPUT	s0, I2C_mux
+	
+	CALL	I2C_initialise
+	CALL	I2C_start
+	FETCH	sE, CLI_WORD_2
+	SL1	sE 		;LSB = 1 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	;; JUMP	C, communication_fail
+	CALL	I2C_Rx_byte
+	LOAD	s3, sE
+	CALL	I2C_Tx_ACK
+	CALL	I2C_Rx_byte
+	LOAD	s4, sE
+	CALL	I2C_Tx_NACK
+	CALL	I2C_stop
+	
+	LOAD	s0, s3
+	CALL	util_print_hex_byte
+	LOAD	s0, s4
+	CALL	util_print_hex_byte
+
+	CALL	util_print_EOL
+
+	RETURN

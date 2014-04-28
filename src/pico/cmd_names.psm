@@ -1,0 +1,187 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name       | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | cmds       |    | x  |    |    |    |    |    |    |    |    |    |    |
+
+
+INCLUDE "cmds_A.psm"
+INCLUDE "cmds_H.psm"
+INCLUDE	"cmds_I.psm"
+INCLUDE "cmds_J.psm"
+INCLUDE "cmds_M.psm"
+INCLUDE "cmds_P.psm"
+INCLUDE "cmds_R.psm"
+INCLUDE "cmds_S.psm"
+INCLUDE "cmds_T.psm"
+INCLUDE "cmds_V.psm"
+
+	
+STRING multiarg$, "multiarg"
+STRING memdump$, "memdump"
+STRING reset$, "reset"
+STRING version$, "version"
+STRING sys$, "sys"
+STRING help$, "help"
+
+STRING PWR_ON$,  "power_on"
+STRING PWR_OFF$, "power_off"
+STRING adc_read$, "a"
+
+STRING 	jtag_write$, "jw"
+STRING 	jtag_read$, "jr"
+STRING 	i2c_write$, "iw"
+STRING 	i2c_read$, "ir"
+STRING 	jtag_tdo$, "jd"
+STRING 	jtag_tms$, "jm"
+STRING 	jtag_jtw$, "jtw"
+STRING 	jtag_jtr$, "jtr"
+STRING 	jtag_jtu$, "jtu"
+STRING 	jtag_jtg$, "jtg"
+STRING 	jtag_jts$, "jts"
+STRING 	tdc_tc$, "tc"
+STRING tdc_tr$, "tr"
+STRING 	tdc_tf$, "tf"
+STRING	tdc_tz$, "tz"
+	
+cmds:
+	;; CMD_multiarg (multiarg)
+	LOAD&RETURN s1, multiarg$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_multiarg'upper
+	LOAD&RETURN s1, CMD_multiarg'lower
+	;; CMD_Mem_dump (memdump)
+	LOAD&RETURN s1, memdump$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_Mem_dump'upper
+	LOAD&RETURN s1, CMD_Mem_dump'lower
+	;; CMD_reset (reset)
+	LOAD&RETURN s1, reset$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_reset'upper
+	LOAD&RETURN s1, CMD_reset'lower
+	;; CMD_Version (version)
+	LOAD&RETURN s1, version$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_version'upper
+	LOAD&RETURN s1, CMD_version'lower
+	;; CMD_sys (sys)
+	LOAD&RETURN s1, sys$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_sys'upper
+	LOAD&RETURN s1, CMD_sys'lower
+	;; CMD_help (help)
+	LOAD&RETURN s1, help$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_help'upper
+	LOAD&RETURN s1, CMD_help'lower
+
+	;; CMD_PWR_ON (PWR_ON)
+	LOAD&RETURN s1, PWR_ON$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_PWR_ON'upper
+	LOAD&RETURN s1, CMD_PWR_ON'lower
+	
+	;; CMD_PWR_OFF (PWR_OFF)
+	LOAD&RETURN s1, PWR_OFF$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_PWR_OFF'upper
+	LOAD&RETURN s1, CMD_PWR_OFF'lower
+	
+	;; CMD_ADC_READ (adc_read)
+	LOAD&RETURN s1, adc_read$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_ADC_READ'upper
+	LOAD&RETURN s1, CMD_ADC_READ'lower
+
+	;; CMD_JTAG_WRITE (jtag_write)
+	LOAD&RETURN s1, jtag_write$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_WRITE'upper
+	LOAD&RETURN s1, CMD_JTAG_WRITE'lower
+
+	;; CMD_JTAG_READ (jtag_read)
+	LOAD&RETURN s1, jtag_read$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_READ'upper
+	LOAD&RETURN s1, CMD_JTAG_READ'lower
+
+	;; CMD_I2C_WRITE (iwc_write)
+	LOAD&RETURN s1, i2c_write$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_I2C_WRITE'upper
+	LOAD&RETURN s1, CMD_I2C_WRITE'lower
+
+	;; CMD_I2C_READ (i2c_read)
+	LOAD&RETURN s1, i2c_read$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_I2C_READ'upper
+	LOAD&RETURN s1, CMD_I2C_READ'lower
+
+	;; CMD_JTAG_TDO (jtag_tdo)
+	LOAD&RETURN s1, jtag_tdo$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_TDO'upper
+	LOAD&RETURN s1, CMD_JTAG_TDO'lower
+
+	;; CMD_JTAG_TMS (jtag_tms)
+	LOAD&RETURN s1, jtag_tms$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_TMS'upper
+	LOAD&RETURN s1, CMD_JTAG_TMS'lower
+	
+	;; CMD_JTAG_JTW (jtag_jtw)
+	LOAD&RETURN s1, jtag_jtw$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JTW'upper
+	LOAD&RETURN s1, CMD_JTAG_JTW'lower
+
+	;; CMD_JTAG_JTR (jtag_jtr)
+	LOAD&RETURN s1, jtag_jtr$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JTR'upper
+	LOAD&RETURN s1, CMD_JTAG_JTR'lower
+
+	;; CMD_JTAG_JTR (jtag_jtu)
+	LOAD&RETURN s1, jtag_jtu$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JTU'upper
+	LOAD&RETURN s1, CMD_JTAG_JTU'lower
+
+	;; CMD_JTAG_JTG (jtag_jtg)
+	LOAD&RETURN s1, jtag_jtg$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JTG'upper
+	LOAD&RETURN s1, CMD_JTAG_JTG'lower
+	
+	;; CMD_JTAG_JTS (jtag_jts)
+	LOAD&RETURN s1, jtag_jts$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JTS'upper
+	LOAD&RETURN s1, CMD_JTAG_JTS'lower
+
+	;; CMD_TDC_TC (tdc_tc)
+	LOAD&RETURN s1, tdc_tc$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_TDC_TC'upper
+	LOAD&RETURN s1, CMD_TDC_TC'lower
+
+	;; CMD_TDC_TF (tdc_tf)
+	LOAD&RETURN s1, tdc_tf$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_TDC_TF'upper
+	LOAD&RETURN s1, CMD_TDC_TF'lower
+	
+	;; CMD_TDC_TZ (tdc_tz)
+	LOAD&RETURN s1, tdc_tz$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_TDC_TZ'upper
+	LOAD&RETURN s1, CMD_TDC_TZ'lower
+	
+	;; CMD_TDC_TR (tdc_tr)
+	LOAD&RETURN s1, tdc_tr$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_TDC_TR'upper
+	LOAD&RETURN s1, CMD_TDC_TR'lower
+	
+	LOAD&RETURN s1, FF	; end of commands string
