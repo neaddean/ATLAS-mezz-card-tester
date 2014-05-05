@@ -48,7 +48,9 @@ CONSTANT TDO_SIZE,		40 	; Number of nibbles in TDO register
 	
 CONSTANT TDO_REG,		41	; Register for TDO (4 bytes)
 
-CONSTANT CSR_BLOCK,		45 	; Beginning of CSR registers block
+CONSTANT CSR_BLOCK,		45 	; Beginning of CSR registers block - up to 63
+
+CONSTANT ASD_BLOCK,		63 	; Size of ASD registers block
 	
 CONSTANT MEM_SIZE, 		FF	; Size of our scratchpad memory
 

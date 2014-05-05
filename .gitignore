@@ -12,6 +12,7 @@
 !ipcore_dir/
 !src/
 !src/*
+src/#*
 !src/pico/*.psm
 !src/pico/*.exe
 src/*.pyc

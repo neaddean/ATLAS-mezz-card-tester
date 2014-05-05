@@ -35,18 +35,6 @@ CMD_JTAG_TDO:
 	SUB	s0, 01
 	FETCH	sE, (s0)
 
-	;; ;; shift tdo to the right
-;; 	LOAD	s0, 08
-;; 	SUB	s0, s1
-;; align_tdo:
-;; 	JUMP	Z, align_tdo_done
-;; 	CALL 	shift_tdo
-;; 	CALL	shift_tdo
-;; 	CALL	shift_tdo
-;; 	CALL	shift_tdo
-
-;; 	sub	s0, 01
-;; 	JUMP	align_tdo
 align_tdo_done:	
 	;; transfer to TDO_REG
 	LOAD	s1, TDO_REG
@@ -91,18 +79,6 @@ CMD_JTAG_TMS:
 	SUB	s0, 01
 	FETCH	s9, (s0)
 
-	;; ;; shift tms to the right
-;; 	LOAD	s0, 08
-;; 	SUB	s0, s5
-;; align_tms:
-;; 	JUMP	Z, align_tms_done
-;; 	CALL 	shift_tms
-;; 	CALL	shift_tms
-;; 	CALL	shift_tms
-;; 	CALL	shift_tms
-
-;; 	sub	s0, 01
-;; 	JUMP	align_tms
 align_tms_done:	
 	;; ;; transfer to TDO_REG
 	;; LOAD	s1, TDO_REG
@@ -362,7 +338,6 @@ load_csr_loop:
 	SRA	s7
 	SR1	s6
 	SRA	s7
-
 	
 	LOAD	sC, FF
 	LOAD	sD, s6
@@ -468,11 +443,9 @@ jtag_get_loop:
 	
 	JUMP	load_csr_loop	; exit CMD_JTAG_JTG
 
-	
-
 CMD_JTAG_JTS:
 	
-;; first we will JTAG in the CONTROL command and wait at data shift
+;; first we will JTAG in the STATUS command and wait at data shift
 	LOAD	sD, 01
 	LOAD	sE, 40
 	LOAD	s8, 26		
@@ -518,16 +491,15 @@ jtag_status_loop:
 	
 	JUMP	jtag_finish	; exit CMD_JTAG_JTS
 
-
 	;; this will shift the TDI bit-by-bit onto s8
 jtag_read:	
 	LOAD	s4, 00
 	CALL	jtag_clk
 	INPUT	s5, JTAG_PORT
-	LOAD	s0, s5
-	CALL	util_byte_to_hex
-	CALL	uart_output_wait
-	OUTPUT	s1, UART_OUTPUT
+	;; LOAD	s0, s5
+	;; CALL	util_byte_to_hex
+	;; CALL	uart_output_wait
+	;; OUTPUT	s1, UART_OUTPUT
 	SR0	s5
 	SRA	s8
 	RETURN
@@ -541,4 +513,220 @@ jtag_finish:
 
 	CALL	jtag_no_read
 	
+	RETURN
+
+CMD_JTAG_JAW:
+	FETCH	s5, CLI_WORD_1	; get the register number
+	FETCH	s6, CLI_WORD_2	; get the word
+	LOAD	s7, ASD_BLOCK	; points to beg of the ASD block
+	ADD	s7, s5		; go to correct register
+	STORE	s6, (s7)	; load word into register
+	RETURN
+
+CMD_JTAG_JAR:
+	FETCH	s5, CLI_WORD_1	; get register number
+	LOAD	s7, ASD_BLOCK	; points to beg of ASD block
+	ADD	s7, s5		; go to correct register
+	FETCH	s0, (s7)
+	CALL	util_print_hex_byte ; print register
+	CALL	util_print_EOL
+	RETURN
+
+CMD_JTAG_JAU:
+	;; first we will JTAG in the ASD command and wait at data shift
+	LOAD	sD, 01
+	LOAD	sE, 20
+	LOAD	s8, 26		
+	LOAD	s9, 06
+	LOAD	s5, 04 		; number of nibbles nebing shifted
+	
+	CALL	jtag_no_read
+
+	LOAD	s3, 02
+	LOAD	s2, 00
+
+jau_loop:	
+
+	LOAD	sF, ASD_BLOCK	; table index
+
+	ADD	sF, 0A		; go to end for shifting
+	FETCH	s4, (sF)	; load chip mode
+
+	CALL	jtag_clk	; clock out the single bit
+	
+	
+	SUB	sF, 01		; channel mode 5-8
+	FETCH   sE, (sF)	
+
+	SUB	sF, 01		; channel mode 1-4
+	FETCH   sD, (sF)
+	
+
+	STAR	sE, sE
+	STAR	sD, sD
+	
+	REGBANK	B
+	LOAD	s9, 00
+	LOAD	s8, 00
+	LOAD	s7, 00
+	LOAD	s6, 00
+	LOAD	s5, 04
+	CALL 	jtag_no_read
+	REGBANK A
+
+		
+	SUB	sF, 01		; deadtime 0000 0XXX
+	FETCH	sE, (sF)
+	
+	SUB	sF, 01
+	FETCH	sA, (sF)	; wilkinson current 0000 0XXX
+	SL0	sA
+	SL0	sA
+	SL0	sA
+	OR	sE, sA		; sE: 00XX XXXX
+
+	SUB	sF, 01
+	FETCH	s9, (sF)	; wilkinson adc gate 0000 XXXX
+	SL0	s9
+	SLA	sA
+	SL0	s9
+	SLA	sA		; s9:sA	0000 00XX : XX00 0000
+	OR	sE, sA
+	LOAD	sD, s9
+	
+	SUB	sF, 01
+	FETCH	sA, (sF)	; hysteresis 0000 XXXX
+	SL0	sA
+	SL0	sA		; sA 00XX XX00
+	OR	sD, sA
+
+	SUB	sF, 01		
+	FETCH	s9, (sF)	; wilkinson adc thr 0000 0XXX
+	SR0	s9
+	SRA	sA
+	SR0	s9
+	SRA	sA		; s9:sA 0000 000X : XX00 0000
+	OR	sD, sA
+	LOAD	sC, s9
+
+	SUB	sF, 01
+	FETCH	sA, (sF)	; main dac XXXX XXXX
+	SL0	s9
+	SLA	sA		; s9:sA 0000 000X : XXXX XXX0
+	OR	sC, sA
+	LOAD	sB, s9
+
+	SUB	sF, 01
+	FETCH	sA, (sF)	; calibration cap 0000 0XXX
+	SL0	sA		; sA 0000 XXX0
+	OR	sB, sA		; 7 nibbles are now ready to launch!
+
+	STAR	sE, sE
+	STAR	sD, sD
+	STAR	sC, sC
+	STAR	sB, sB
+
+	REGBANK	B
+	LOAD	s5, 07
+	CALL	jtag_no_read
+	REGBANK	A
+
+	SUB	sF, 01
+	FETCH	sE, (sF)	; channel mask
+	STAR	sE, sE
+
+	COMPARE	s2, 01		;check flag for last time (must terminate jtag)
+	JUMP	Z, jau_last_time
+
+	REGBANK B
+	LOAD	s5, 02
+	CALL	jtag_no_read
+	REGBANK	A
+
+	SUB	s3, 01
+	COMPARE	s3, 00		; is it the last time?
+	JUMP	NZ, jau_loop	; no, go back to loop
+	LOAD	s2, 01		; yes, set last time flag
+	JUMP	jau_loop	; return to loop
+
+jau_last_time:
+	LOAD	s9, 10
+	LOAD	s8, FF
+	LOAD	s5, 04
+	CALL	jtag_no_read
+	
+	RETURN
+
+
+CMD_JTAG_JAG:
+;; first we will JTAG in the ASD command and wait at data shift
+	LOAD	sD, 01
+	LOAD	sE, 20
+	LOAD	s8, 26		
+	LOAD	s9, 06
+	LOAD	s5, 04 		; number of nibbles nebing shifted
+	
+	CALL	jtag_no_read
+		
+	LOAD	s8, 00
+	LOAD	s9, ASD_BLOCK
+	ADD	s9, 0A
+	
+	CALL	jtag_read
+	STORE	s8, (s9)	; store chip mode
+	LOAD	s0, 07
+	CALL	rshift_s8_x
+	LOAD	s8, 00
+
+	LOAD	s6, 0A
+
+	;; s9 : ASD_BLOCK write pointer
+	;; s8 : temp data reg
+	;; s7 : none
+	;; s6 : counter/table index
+	;; sC : table return reg
+jag_loop:	
+	CALL	jtag_read_x
+	CALL	read_asd_table
+	LOAD	s0, 08
+	SUB	s0, sC
+	CALL	rshift_s8_x
+	SUB	s9, 01
+	STORE	s8, (s9)
+	LOAD	s8, 00
+	SUB	s6, 01
+	JUMP	NZ, jag_loop
+
+	LOAD	s2, 00 		; reset last time flag
+	LOAD	s3, 01		; only go through jtu twice
+
+	JUMP	jau_loop	; exit CMD_JTAG_JAG
+
+	RETURN
+
+rshift_s8_x:
+	COMPARE	s0, 00
+	RETURN  Z
+	SR0 	s8
+	SUB	s0, 01
+	JUMP	rshift_s8_x
+
+jtag_read_x:
+	CALL	read_asd_table
+jtag_read_x_loop:	
+	CALL	jtag_read
+	SUB	sC, 01
+	RETURN 	Z
+	JUMP	jtag_read_x_loop
+
+TABLE 		ASD_REG_LENGTHS#, [08, 03, 08, 08, 03, 04, 04, 03, 03, 08, 08]
+asd_table:	LOAD&RETURN sC, ASD_REG_LENGTHS#
+
+read_asd_table:
+	;; load the reg size from the table
+	LOAD	sB, asd_table'upper
+	LOAD	sA, asd_table'lower
+	ADD	sA, s6
+	ADDCY	sB, 00
+	CALL@	(sB, sA)
 	RETURN

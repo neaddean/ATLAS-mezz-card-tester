@@ -28,21 +28,28 @@ STRING PWR_ON$,  "power_on"
 STRING PWR_OFF$, "power_off"
 STRING adc_read$, "a"
 
-STRING 	jtag_write$, "jw"
-STRING 	jtag_read$, "jr"
-STRING 	i2c_write$, "iw"
-STRING 	i2c_read$, "ir"
-STRING 	jtag_tdo$, "jd"
-STRING 	jtag_tms$, "jm"
 STRING 	jtag_jtw$, "jtw"
 STRING 	jtag_jtr$, "jtr"
 STRING 	jtag_jtu$, "jtu"
 STRING 	jtag_jtg$, "jtg"
 STRING 	jtag_jts$, "jts"
+STRING	jtag_jaw$, "jaw"
+STRING	jtag_jar$, "jar"
+STRING	jtag_jau$, "jau"
+STRING	jtag_jag$, "jag"
+	
 STRING 	tdc_tc$, "tc"
 STRING tdc_tr$, "tr"
 STRING 	tdc_tf$, "tf"
 STRING	tdc_tz$, "tz"
+
+STRING 	jtag_tdo$, "jd"
+STRING 	jtag_tms$, "jm"
+STRING 	jtag_write$, "jw"
+STRING 	jtag_read$, "jr"
+STRING 	i2c_write$, "iw"
+STRING 	i2c_read$, "ir"
+	
 	
 cmds:
 	;; CMD_multiarg (multiarg)
@@ -183,5 +190,29 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_TDC_TR'upper
 	LOAD&RETURN s1, CMD_TDC_TR'lower
+
+	;; CMD_JTAG_JAW (jtag_jaw)
+	LOAD&RETURN s1, jtag_jaw$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JAW'upper
+	LOAD&RETURN s1, CMD_JTAG_JAW'lower
+
+	;; CMD_JTAG_JAR (jtag_jar)
+	LOAD&RETURN s1, jtag_jar$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JAR'upper
+	LOAD&RETURN s1, CMD_JTAG_JAR'lower
+
+	;; CMD_JTAG_JAU (jtag_jau)
+	LOAD&RETURN s1, jtag_jau$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JAU'upper
+	LOAD&RETURN s1, CMD_JTAG_JAU'lower
+
+	;; CMD_JTAG_JAG (jtag_jag)
+	LOAD&RETURN s1, jtag_jag$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_JTAG_JAG'upper
+	LOAD&RETURN s1, CMD_JTAG_JAG'lower
 	
 	LOAD&RETURN s1, FF	; end of commands string
