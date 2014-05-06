@@ -371,20 +371,20 @@ jtag_loop:
 	CALL	do_jtag
 	CALL	shift_tdo
 	CALL	shift_tms
-	
+
 	CALL	do_jtag
 	CALL	shift_tdo
 	CALL	shift_tms
-	
+
 	CALL	do_jtag
 	CALL	shift_tdo
 	CALL	shift_tms
-	
+
 	sub	s5, 01
 	JUMP	NZ, jtag_loop
 	
 	RETURN			; exit CMD_JTAG_TMS
-
+	
 CMD_JTAG_JTG:
 	
 ;; first we will JTAG in the CONTROL command and wait at data shift
@@ -496,10 +496,6 @@ jtag_read:
 	LOAD	s4, 00
 	CALL	jtag_clk
 	INPUT	s5, JTAG_PORT
-	;; LOAD	s0, s5
-	;; CALL	util_byte_to_hex
-	;; CALL	uart_output_wait
-	;; OUTPUT	s1, UART_OUTPUT
 	SR0	s5
 	SRA	s8
 	RETURN
@@ -508,8 +504,8 @@ jtag_finish:
 	;; LOAD	sD, 00
 	LOAD	sE, 00
 	LOAD	s8, ff
-	LOAD	s9, 01
-	LOAD	s5, 04 		; number of nibbles being shifted
+	LOAD	s9, ff
+	LOAD	s5, 02		; number of nibbles being shifted
 
 	CALL	jtag_no_read
 	
@@ -553,7 +549,6 @@ jau_loop:
 	FETCH	s4, (sF)	; load chip mode
 
 	CALL	jtag_clk	; clock out the single bit
-	
 	
 	SUB	sF, 01		; channel mode 5-8
 	FETCH   sE, (sF)	
@@ -611,8 +606,8 @@ jau_loop:
 
 	SUB	sF, 01
 	FETCH	sA, (sF)	; main dac XXXX XXXX
-	SL0	s9
-	SLA	sA		; s9:sA 0000 000X : XXXX XXX0
+	SL0	sA
+	SLA	s9		; s9:sA 0000 000X : XXXX XXX0
 	OR	sC, sA
 	LOAD	sB, s9
 
@@ -650,7 +645,7 @@ jau_loop:
 	JUMP	jau_loop	; return to loop
 
 jau_last_time:
-	LOAD	s9, 10
+	LOAD	s9, 80
 	LOAD	s8, FF
 	LOAD	s5, 04
 	CALL	jtag_no_read
@@ -667,18 +662,19 @@ CMD_JTAG_JAG:
 	LOAD	s5, 04 		; number of nibbles nebing shifted
 	
 	CALL	jtag_no_read
+
+	CALL	jtag_clk	; throw away the extra bit
 		
 	LOAD	s8, 00
 	LOAD	s9, ASD_BLOCK
 	ADD	s9, 0A
 	
 	CALL	jtag_read
-	STORE	s8, (s9)	; store chip mode
 	LOAD	s0, 07
 	CALL	rshift_s8_x
-	LOAD	s8, 00
+	STORE	s8, (s9)	; store chip mode
 
-	LOAD	s6, 0A
+	LOAD	s6, 09
 
 	;; s9 : ASD_BLOCK write pointer
 	;; s8 : temp data reg
@@ -686,6 +682,7 @@ CMD_JTAG_JAG:
 	;; s6 : counter/table index
 	;; sC : table return reg
 jag_loop:	
+	LOAD	s8, 00
 	CALL	jtag_read_x
 	CALL	read_asd_table
 	LOAD	s0, 08
@@ -693,12 +690,12 @@ jag_loop:
 	CALL	rshift_s8_x
 	SUB	s9, 01
 	STORE	s8, (s9)
-	LOAD	s8, 00
 	SUB	s6, 01
+	COMPARE	s6, FF
 	JUMP	NZ, jag_loop
 
 	LOAD	s2, 00 		; reset last time flag
-	LOAD	s3, 01		; only go through jtu twice
+	LOAD	s3, 02		; only go through jtu twice
 
 	JUMP	jau_loop	; exit CMD_JTAG_JAG
 
@@ -719,7 +716,7 @@ jtag_read_x_loop:
 	RETURN 	Z
 	JUMP	jtag_read_x_loop
 
-TABLE 		ASD_REG_LENGTHS#, [08, 03, 08, 08, 03, 04, 04, 03, 03, 08, 08]
+TABLE 		ASD_REG_LENGTHS#, [08, 03, 08, 03, 04, 04, 03, 03, 08, 08]
 asd_table:	LOAD&RETURN sC, ASD_REG_LENGTHS#
 
 read_asd_table:
