@@ -112,3 +112,10 @@ communication_fail:
 	CALL util_print_string
 	
 	JUMP util_print_EOL	
+
+
+
+CMD_ASP:
+	FETCH	s0, CLI_WORD_1
+	OUTPUT	s0, ASD_STROBE_PERIOD
+	RETURN

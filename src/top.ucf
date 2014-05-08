@@ -63,9 +63,11 @@ NET "uart_tx"           LOC = "N18" | IOSTANDARD = "LVCMOS33";   #Bank = 1, Pin 
 
 ## VHDCI Connector
 #NET "EXP-IO_P<0>"    LOC = "B2"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L2P,                            Sch name = EXP_IO1_P
-#NET "EXP-IO_N<0>"    LOC = "A2"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L2N,                            Sch name = EXP_IO1_N
+NET "ASD_STROBE_P"    LOC = "B2"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L2P,                            Sch name = EXP_IO1_P
 
-#NET "EXP-IO_P<1>"    LOC = "D6"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
+#NET "EXP-IO_N<0>"    LOC = "A2"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L2N,                            Sch name = EXP_IO1_N#NET "EXP-IO_N<0>"    LOC = "A2"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L2N,                            Sch name = EXP_IO1_N
+NET "ASD_STROBE_N"    LOC = "A2"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
+
 NET "TDC_SER_P"    LOC = "D6"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
 
 #NET "EXP-IO_N<1>"    LOC = "C6"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L3N,                            Sch name = EXP_IO2_N

@@ -28,6 +28,8 @@ STRING PWR_ON$,  "power_on"
 STRING PWR_OFF$, "power_off"
 STRING adc_read$, "a"
 
+STRING asd_period$, "sp"
+
 STRING 	jtag_jtw$, "jtw"
 STRING 	jtag_jtr$, "jtr"
 STRING 	jtag_jtu$, "jtu"
@@ -214,5 +216,11 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_JTAG_JAG'upper
 	LOAD&RETURN s1, CMD_JTAG_JAG'lower
+
+	;; CMD_ASP (asp)
+	LOAD&RETURN s1, asd_period$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_ASP'upper
+	LOAD&RETURN s1, CMD_ASP'lower
 	
 	LOAD&RETURN s1, FF	; end of commands string

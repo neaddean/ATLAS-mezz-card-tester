@@ -477,7 +477,7 @@ jtag_status_loop:
 	CALL	jtag_read
 	CALL	jtag_read
 
-	CALL	util_print_EOL
+	;; CALL	util_print_EOL
 	LOAD	s0, s8		; recall and print s9
 	CALL	util_byte_to_hex
 	CALL	uart_output_wait

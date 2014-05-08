@@ -47,7 +47,8 @@ entity top is
         TDC_CLK_P, TDC_CLK_N         : out   std_logic;
         TDC_ENC_P, TDC_ENC_N         : out   std_logic;
         TDC_SER_P, TDC_SER_N         : in    std_logic;
-        TDC_STROBE_P, TDC_STROBE_N   : in    std_logic);
+        TDC_STROBE_P, TDC_STROBE_N   : in    std_logic;
+        ASD_STROBE_P, ASD_STROBE_N   : out   std_logic);
 end top;
 
 architecture Behavioral of top is
@@ -69,7 +70,8 @@ architecture Behavioral of top is
       tdc_tr_mux                   : out std_logic_vector(1 downto 0);
       fifo_flags                   : in  std_logic_vector(1 downto 0);
       fifo_rd_en, fifo_reset       : out std_logic;
-      fifo_d_in                    : in  std_logic_vector(7 downto 0));
+      fifo_d_in                    : in  std_logic_vector(7 downto 0);
+      asd_strobe_period_sel        : out std_logic);
   end component;
 
   component clk_gen_25_40
@@ -99,6 +101,12 @@ architecture Behavioral of top is
       fifo_rd_en  : in  std_logic);
   end component;
 
+  component asd_strobe is
+    port (clk               : in  std_logic;
+          asd_strobe_signal : out std_logic;
+          period_sel        : in  std_logic_vector(7 downto 0));
+  end component;
+
   signal DRIVE_SDA1, DRIVE_SCL1 : std_logic;
   signal DRIVE_SDA2, DRIVE_SCL2 : std_logic;
 
@@ -123,6 +131,9 @@ architecture Behavioral of top is
   signal fifo_reset, fifo_rd_en : std_logic;
   signal fifo_d_out             : std_logic_vector(7 downto 0);
   signal fifo_flags             : std_logic_vector(1 downto 0);
+
+  signal asd_strobe_period_sel : std_logic_vector(7 downto 0);
+  signal asd_strobe_signal     : std_logic;
   
 begin
 
@@ -160,6 +171,12 @@ begin
       I  => tdc_enc,
       O  => TDC_ENC_P,
       OB => TDC_ENC_N);
+
+  lvds_asd_strobe : OBUFDS
+    port map (
+      I  => asd_strobe_signal,
+      O  => ASD_STROBE_P,
+      OB => ASD_STROBE_N);
 
   lvds_ser : IBUFDS
     port map (
@@ -200,27 +217,28 @@ begin
   -- instance "uart_top_1"
   uart_top_1 : entity work.uart_top
     port map (
-      clk            => clk25,
-      uart_tx        => uart_tx,
-      uart_rx        => uart_rx,
-      LED            => Led,
-      sw             => sw,
-      DRIVE_SCL      => DRIVE_SCL,
-      DRIVE_SDA      => DRIVE_SDA,
-      SDA            => SDA,
-      SCL            => SCL,
-      I2C_mux_signal => I2C_mux_signal,
-      PWR_ON         => PWR_ON,
-      JTAG_TMS       => JTAG_TMS,
-      JTAG_TCK       => JTAG_TCK,
-      JTAG_TDO       => JTAG_TDO,
-      JTAG_TDI       => JTAG_TDI,
-      tdc_tr_strobe  => tdc_tr_strobe,
-      tdc_tr_mux     => tdc_tr_mux,
-      fifo_flags     => fifo_flags,
-      fifo_rd_en     => fifo_rd_en,
-      fifo_reset     => fifo_reset,
-      fifo_d_in      => fifo_d_out);
+      clk                   => clk25,
+      uart_tx               => uart_tx,
+      uart_rx               => uart_rx,
+      LED                   => Led,
+      sw                    => sw,
+      DRIVE_SCL             => DRIVE_SCL,
+      DRIVE_SDA             => DRIVE_SDA,
+      SDA                   => SDA,
+      SCL                   => SCL,
+      I2C_mux_signal        => I2C_mux_signal,
+      PWR_ON                => PWR_ON,
+      JTAG_TMS              => JTAG_TMS,
+      JTAG_TCK              => JTAG_TCK,
+      JTAG_TDO              => JTAG_TDO,
+      JTAG_TDI              => JTAG_TDI,
+      tdc_tr_strobe         => tdc_tr_strobe,
+      tdc_tr_mux            => tdc_tr_mux,
+      fifo_flags            => fifo_flags,
+      fifo_rd_en            => fifo_rd_en,
+      fifo_reset            => fifo_reset,
+      fifo_d_in             => fifo_d_out,
+      asd_strobe_period_sel => asd_strobe_period_sel);
 
   tdc_trig_res_1 : tdc_trig_res
     port map (
@@ -238,5 +256,12 @@ begin
       fifo_flags => fifo_flags,
       fifo_d_out => fifo_d_out,
       fifo_rd_en => fifo_rd_en);
+
+  asd_strobe_1 : asd_strobe
+    port map (
+      clk               => clk25,
+      asd_strobe_signal => asd_strobe_signal,
+      period_sel        => asd_strobe_period_sel);
+
 end Behavioral;
 
