@@ -45,7 +45,8 @@ entity uart_top is
     fifo_flags                   : in  std_logic_vector(1 downto 0);
     fifo_rd_en, fifo_reset       : out std_logic;
     fifo_d_in                    : in  std_logic_vector(7 downto 0);
-    asd_strobe_period_sel        : out std_logic_vector(7 downto 0));
+    asd_strobe_period_sel        : out std_logic_vector(7 downto 0);
+    pulse_ctl                    : out std_logic);
 end uart_top;
 
 architecture Behavioral of uart_top is
@@ -367,7 +368,8 @@ begin
                        JTAG_TDO <= out_port(0);
           when X"7" => tdc_tr_strobe <= out_port(4);
                        tdc_tr_mux <= out_port (1 downto 0);
-          when X"9" => asd_strobe_period_sel <= out_port;
+          when X"9"   => asd_strobe_period_sel <= out_port;
+          when X"A"   => pulse_ctl             <= out_port(0);
           when others => null;
         end case;
       end if;

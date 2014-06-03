@@ -41,6 +41,7 @@ entity top is
         sw                           : in    std_logic_vector (7 downto 0);
         I2C_SDA1, I2C_SCL1           : inout std_logic;
         I2C_SDA2, I2C_SCL2           : inout std_logic;
+        I2C_SDA3, I2C_SCL3           : inout std_logic;
         PWR_ON                       : out   std_logic;
         JTAG_TMS, JTAG_TCK, JTAG_TDO : out   std_logic;
         JTAG_TDI                     : in    std_logic;
@@ -48,7 +49,8 @@ entity top is
         TDC_ENC_P, TDC_ENC_N         : out   std_logic;
         TDC_SER_P, TDC_SER_N         : in    std_logic;
         TDC_STROBE_P, TDC_STROBE_N   : in    std_logic;
-        ASD_STROBE_P, ASD_STROBE_N   : out   std_logic);
+        ASD_STROBE_P, ASD_STROBE_N   : out   std_logic;
+        PULSE_BANK                   : out   std_logic_vector(5 downto 0));
 end top;
 
 architecture Behavioral of top is
@@ -71,7 +73,8 @@ architecture Behavioral of top is
       fifo_flags                   : in  std_logic_vector(1 downto 0);
       fifo_rd_en, fifo_reset       : out std_logic;
       fifo_d_in                    : in  std_logic_vector(7 downto 0);
-      asd_strobe_period_sel        : out std_logic);
+      asd_strobe_period_sel        : out std_logic;
+      pulse_ctl                    : out std_logic);
   end component;
 
   component clk_gen_25_40
@@ -107,8 +110,15 @@ architecture Behavioral of top is
           period_sel        : in  std_logic_vector(7 downto 0));
   end component;
 
+  component pulse_gen is
+    port (clk           : in  std_logic;
+          pulse_ctl     : in  std_logic;
+          pulse_trigger : out std_logic);
+  end component;
+
   signal DRIVE_SDA1, DRIVE_SCL1 : std_logic;
   signal DRIVE_SDA2, DRIVE_SCL2 : std_logic;
+  signal DRIVE_SDA3, DRIVE_SCL3 : std_logic;
 
   -- Signals used for the I2C mux
 
@@ -134,6 +144,9 @@ architecture Behavioral of top is
 
   signal asd_strobe_period_sel : std_logic_vector(7 downto 0);
   signal asd_strobe_signal     : std_logic;
+
+  signal pulse_trigger : std_logic;
+  signal pulse_ctl     : std_logic;
   
 begin
 
@@ -194,6 +207,10 @@ begin
   I2C_SCL1 <= '0' when DRIVE_SCL1 = '0' else 'Z';
   I2C_SDA2 <= '0' when DRIVE_SDA2 = '0' else 'Z';
   I2C_SCL2 <= '0' when DRIVE_SCL2 = '0' else 'Z';
+  I2C_SDA3 <= '0' when DRIVE_SDA3 = '0' else 'Z';
+  I2C_SCL3 <= '0' when DRIVE_SCL3 = '0' else 'Z';
+
+  PULSE_BANK <= (others => '1') when pulse_trigger = '0' else (others => '0');
 
 
   i2c_multiplexer : process (clk25)
@@ -208,6 +225,10 @@ begin
                       SCL        <= I2C_SCL2;
                       DRIVE_SDA2 <= DRIVE_SDA;
                       DRIVE_SCL2 <= DRIVE_SCL;
+        when "010" => SDA <= I2C_SDA3;
+                      SCL        <= I2C_SCL3;
+                      DRIVE_SDA3 <= DRIVE_SDA;
+                      DRIVE_SCL3 <= DRIVE_SCL;
         when others => null;
       end case;
     end if;
@@ -238,7 +259,8 @@ begin
       fifo_rd_en            => fifo_rd_en,
       fifo_reset            => fifo_reset,
       fifo_d_in             => fifo_d_out,
-      asd_strobe_period_sel => asd_strobe_period_sel);
+      asd_strobe_period_sel => asd_strobe_period_sel,
+      pulse_ctl             => pulse_ctl);
 
   tdc_trig_res_1 : tdc_trig_res
     port map (
@@ -262,6 +284,13 @@ begin
       clk               => clk25,
       asd_strobe_signal => asd_strobe_signal,
       period_sel        => asd_strobe_period_sel);
+
+  -- instance "pulse_gen_1"
+  pulse_gen_1 : entity work.pulse_gen
+    port map (
+      clk           => clk25,
+      pulse_ctl     => pulse_ctl,
+      pulse_trigger => pulse_trigger);
 
 end Behavioral;
 

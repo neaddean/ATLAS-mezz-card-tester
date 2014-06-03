@@ -158,7 +158,7 @@
                    ; related to the frequency of the clock provide to KCPSM6 is known and the CONSTANT
                    ; directive below must be defined correctly to achieve that.
                    ;
-                   CONSTANT I2C_time_reference, 5'd
+                   CONSTANT I2C_time_reference, 1'd
                    ;
                    ;  I2C_time_reference =  ( fclk - 6 ) / 4
                    ;

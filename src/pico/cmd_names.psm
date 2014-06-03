@@ -6,6 +6,8 @@
 
 
 INCLUDE "cmds_A.psm"
+INCLUDE "cmds_C.psm"
+INCLUDE "cmds_D.psm"
 INCLUDE "cmds_H.psm"
 INCLUDE	"cmds_I.psm"
 INCLUDE "cmds_J.psm"
@@ -27,8 +29,11 @@ STRING help$, "help"
 STRING PWR_ON$,  "power_on"
 STRING PWR_OFF$, "power_off"
 STRING adc_read$, "a"
+STRING dac_write$, "d"
+STRING channel_mask$, "p"
 
 STRING asd_period$, "sp"
+STRING pulse_ctl$, "pc"
 
 STRING 	jtag_jtw$, "jtw"
 STRING 	jtag_jtr$, "jtr"
@@ -41,7 +46,7 @@ STRING	jtag_jau$, "jau"
 STRING	jtag_jag$, "jag"
 	
 STRING 	tdc_tc$, "tc"
-STRING tdc_tr$, "tr"
+STRING  tdc_tr$, "tr"
 STRING 	tdc_tf$, "tf"
 STRING	tdc_tz$, "tz"
 
@@ -222,5 +227,23 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_ASP'upper
 	LOAD&RETURN s1, CMD_ASP'lower
+
+	;; CMD_PULSE_CTL (pulse_ctl)
+	LOAD&RETURN s1, pulse_ctl$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_PULSE_CTL'upper
+	LOAD&RETURN s1, CMD_PULSE_CTL'lower
+
+	;; CMD_CHANNEL_MASK (channel_mask)
+	LOAD&RETURN s1, channel_mask$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_CHANNEL_MASK'upper
+	LOAD&RETURN s1, CMD_CHANNEL_MASK'lower
+
+	;; CMD_DAC_WRITE (dac_write)
+	LOAD&RETURN s1, dac_write$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_DAC_WRITE'upper
+	LOAD&RETURN s1, CMD_DAC_WRITE'lower
 	
 	LOAD&RETURN s1, FF	; end of commands string

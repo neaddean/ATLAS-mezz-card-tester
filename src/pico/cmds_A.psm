@@ -60,6 +60,7 @@ channel_aligned:
 	CALL 	I2C_stop
 
 	CALL	jtag_delay	; 1us delay
+	CALL	jtag_delay	; 1us delay
 
 	;; now we read
 	CALL	I2C_initialise
