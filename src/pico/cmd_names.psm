@@ -30,7 +30,6 @@ STRING PWR_ON$,  "power_on"
 STRING PWR_OFF$, "power_off"
 STRING adc_read$, "a"
 STRING dac_write$, "d"
-STRING pulse_ctl$, "pc"
 
 STRING channel_mask$, "p"
 STRING asd_period$, "sp"
@@ -227,12 +226,6 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_ASP'upper
 	LOAD&RETURN s1, CMD_ASP'lower
-
-	;; CMD_PULSE_CTL (pulse_ctl)
-	LOAD&RETURN s1, pulse_ctl$
-	LOAD&RETURN s1, 00	; end of command
-	LOAD&RETURN s1, CMD_PULSE_CTL'upper
-	LOAD&RETURN s1, CMD_PULSE_CTL'lower
 
 	;; CMD_CHANNEL_MASK (channel_mask)
 	LOAD&RETURN s1, channel_mask$

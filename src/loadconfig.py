@@ -6,7 +6,7 @@ tdc = serial.Serial("/dev/ttyUSB0", 500000)
 csr = ["000", "020", "027", "01F", "D60", "000", "D75",
        "000", "DEB", "C0A", "A71", "E11", "1FF", "FFF", "FFF"]
 
-asd_regs = ["FF", "07", "6C", "01", "02", "06", "05", "07", "00", "00", "00"]
+asd_regs = ["FF", "07", "6C", "01", "02", "06", "05", "07", "00", "00", "1"]
 
 tdc.write("power_off\n")
 time.sleep(1)
@@ -22,6 +22,18 @@ for i in range(len(asd_regs)):
     tdc.write("jaw " + format(i, "1x") + " " + asd_regs[i] + "\n")
     time.sleep(.01)
 
+tdc.write("d 0 fff\n")
+time.sleep(.01)
+tdc.write("d 1 fff\n")
+time.sleep(.01)
+tdc.write("d 2 fff\n")
+time.sleep(.01)
+tdc.write("d 3 fff\n")
+time.sleep(.01)
+tdc.write("p fffff\n")
+time.sleep(.01)
+tdc.write("pc 1\n")
+time.sleep(.01)
 tdc.write("jtu\n")
 time.sleep(.01)
 tdc.write("jau\n")

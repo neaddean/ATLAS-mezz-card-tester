@@ -142,7 +142,7 @@ architecture Behavioral of top is
   signal fifo_d_out             : std_logic_vector(7 downto 0);
   signal fifo_flags             : std_logic_vector(1 downto 0);
 
-  signal asd_strobe_period_sel : std_logic_vector(7 downto 0);
+  signal asd_strobe_period_sel : std_logic_vector(7 downto 0) := (others => '0');
   signal asd_strobe_signal     : std_logic;
 
   signal pulse_trigger : std_logic;
@@ -210,8 +210,7 @@ begin
   I2C_SDA3 <= '0' when DRIVE_SDA3 = '0' else 'Z';
   I2C_SCL3 <= '0' when DRIVE_SCL3 = '0' else 'Z';
 
-  PULSE_BANK <= (others => '1') when pulse_trigger = '0' else (others => '0');
-
+  PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
 
   i2c_multiplexer : process (clk25)
   begin
@@ -288,7 +287,7 @@ begin
   -- instance "pulse_gen_1"
   pulse_gen_1 : entity work.pulse_gen
     port map (
-      clk           => clk25,
+      clk           => clk40,
       pulse_ctl     => pulse_ctl,
       pulse_trigger => pulse_trigger);
 
