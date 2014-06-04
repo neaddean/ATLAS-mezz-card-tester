@@ -30,10 +30,10 @@ STRING PWR_ON$,  "power_on"
 STRING PWR_OFF$, "power_off"
 STRING adc_read$, "a"
 STRING dac_write$, "d"
-STRING channel_mask$, "p"
-
-STRING asd_period$, "sp"
 STRING pulse_ctl$, "pc"
+
+STRING channel_mask$, "p"
+STRING asd_period$, "sp"
 
 STRING 	jtag_jtw$, "jtw"
 STRING 	jtag_jtr$, "jtr"
