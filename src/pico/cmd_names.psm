@@ -16,23 +16,25 @@ INCLUDE "cmds_P.psm"
 INCLUDE "cmds_R.psm"
 INCLUDE "cmds_S.psm"
 INCLUDE "cmds_T.psm"
-INCLUDE "cmds_V.psm"
+INCLUDE	"cmds_V.psm"
 
 	
-STRING multiarg$, "multiarg"
-STRING memdump$, "memdump"
-STRING reset$, "reset"
-STRING version$, "version"
-STRING sys$, "sys"
-STRING help$, "help"
+STRING 	multiarg$, "multiarg"
+STRING 	memdump$, "memdump"
+STRING 	reset$, "reset"
+STRING 	version$, "version"
+STRING 	sys$, "sys"
+STRING 	help$, "help"
 
-STRING PWR_ON$,  "power_on"
-STRING PWR_OFF$, "power_off"
-STRING adc_read$, "a"
-STRING dac_write$, "d"
+STRING 	PWR_ON$,  "power_on"
+STRING 	PWR_OFF$, "power_off"
+STRING 	adc_read$, "a"
+STRING 	dac_write$, "d"
 
-STRING channel_mask$, "p"
-STRING asd_period$, "sp"
+STRING 	channel_mask$, "p"
+STRING	asd_period$, "sp"
+STRING	pulse_period$, "tp"
+STRING  gpio_init$, "gpio"
 
 STRING 	jtag_jtw$, "jtw"
 STRING 	jtag_jtr$, "jtr"
@@ -238,5 +240,17 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_DAC_WRITE'upper
 	LOAD&RETURN s1, CMD_DAC_WRITE'lower
+
+	;; CMD_PULSE_PERIOD (pulse_period)
+	LOAD&RETURN s1, pulse_period$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_PULSE_PERIOD'upper
+	LOAD&RETURN s1, CMD_PULSE_PERIOD'lower
+
+	;; GPIO_INIALIZE (gpio_init)
+	LOAD&RETURN s1, gpio_init$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, GPIO_INITIALIZE'upper
+	LOAD&RETURN s1, GPIO_INITIALIZE'lower
 	
 	LOAD&RETURN s1, FF	; end of commands string

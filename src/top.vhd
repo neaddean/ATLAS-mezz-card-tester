@@ -74,7 +74,8 @@ architecture Behavioral of top is
       fifo_rd_en, fifo_reset       : out std_logic;
       fifo_d_in                    : in  std_logic_vector(7 downto 0);
       asd_strobe_period_sel        : out std_logic;
-      pulse_ctl                    : out std_logic);
+      pulse_ctl                    : out std_logic;
+      pulse_time                   : out std_logic_vector(7 downto 0));
   end component;
 
   component clk_gen_25_40
@@ -113,7 +114,8 @@ architecture Behavioral of top is
   component pulse_gen is
     port (clk           : in  std_logic;
           pulse_ctl     : in  std_logic;
-          pulse_trigger : out std_logic);
+          pulse_trigger : out std_logic;
+          pulse_time    : in  std_logic_vector(7 downto 0));
   end component;
 
   signal DRIVE_SDA1, DRIVE_SCL1 : std_logic;
@@ -147,6 +149,7 @@ architecture Behavioral of top is
 
   signal pulse_trigger : std_logic;
   signal pulse_ctl     : std_logic;
+  signal pulse_time    : std_logic_vector(7 downto 0) := X"9B";
   
 begin
 
@@ -259,7 +262,8 @@ begin
       fifo_reset            => fifo_reset,
       fifo_d_in             => fifo_d_out,
       asd_strobe_period_sel => asd_strobe_period_sel,
-      pulse_ctl             => pulse_ctl);
+      pulse_ctl             => pulse_ctl,
+      pulse_time            => pulse_time);
 
   tdc_trig_res_1 : tdc_trig_res
     port map (
@@ -289,7 +293,8 @@ begin
     port map (
       clk           => clk40,
       pulse_ctl     => pulse_ctl,
-      pulse_trigger => pulse_trigger);
+      pulse_trigger => pulse_trigger,
+      pulse_time    => pulse_time);
 
 end Behavioral;
 
