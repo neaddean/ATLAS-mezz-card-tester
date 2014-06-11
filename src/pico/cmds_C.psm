@@ -1,0 +1,66 @@
+;;; ============================================================================
+;;; Register map
+;;; ============================================================================
+;;; | name       | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
+;;; | cmds       |    | x  |    |    |    |    |    |    |    |    |    |    |
+
+CMD_CHANNEL_MASK:
+	LOAD	s0, 02
+	OUTPUT	s0, I2C_mux
+	LOAD	s6, CLI_WORD_1
+	LOAD	sE, 27		; 16-23
+	CALL	channel_mask_loop
+	ADD	s6, 01		
+	LOAD	sE, 23		; 8-15
+	CALL	channel_mask_loop
+	ADD	s6, 01		
+	LOAD	sE, 21		; 0-7
+	CALL	channel_mask_loop
+	CALL 	I2C_stop
+	RETURN			; exit CMD_CHANNEL_MASK
+	
+channel_mask_loop:	
+	CALL	I2C_initialise
+	CALL	I2C_start
+	SL0	sE 		; LSB = 0 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	
+	LOAD	sE, 09	; GPIO register
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	
+	FETCH	sE, (s6) 	; channel mask
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	
+	RETURN
+
+GPIO_INITIALIZE:
+	LOAD	s0, 02
+	OUTPUT	s0, I2C_mux
+	LOAD	sE, 27		
+	CALL	gpio_initialize_loop
+	LOAD	sE, 23
+	CALL	gpio_initialize_loop	
+	LOAD	sE, 21
+	CALL	gpio_initialize_loop
+	CALL 	I2C_stop
+	RETURN			; exit GPIO_INIALTIZE
+	
+gpio_initialize_loop:	
+	CALL	I2C_initialise
+	CALL	I2C_start
+	SL0	sE 		; LSB = 0 for write
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	
+	LOAD	sE, 00	; IODIR register
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+
+	LOAD	sE, 00		; all outputs
+	CALL	I2C_Tx_byte
+	CALL	I2C_Rx_ACK
+	
+	RETURN

@@ -284,10 +284,10 @@ begin
   --
 
   baud_rate : process(clk)
-    variable bcnt : integer range 0 to 2 := 0;
+    variable bcnt : integer range 0 to 1 := 0;
   begin
     if clk'event and clk = '1' then
-      if bcnt = 2 then                  -- counts 27 states including zero
+      if bcnt = 1 then                  -- counts 27 states including zero
         bcnt         := 0;
         en_16_x_baud <= '1';            -- single cycle enable pulse
       else

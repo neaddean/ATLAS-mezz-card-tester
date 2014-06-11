@@ -74,7 +74,7 @@ NET "TDC_CLK_N"    LOC = "A3"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name =
 NET "TDC_ENC_P"    LOC = "B4"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L6P,                            Sch name = EXP_IO5_P
 NET "TDC_ENC_N"    LOC = "A4"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
 
-NET "TDC_STROBE_P"    LOC = "C5"  | IOSTANDARD = "LVDS_33" | CLOCK_DEDICATED_ROUTE = FALSE;   #Bank = 0, Pin name = IO_L6P,                            Sch name = EXP_IO5_P
+NET "TDC_STROBE_P"    LOC = "C5"  | IOSTANDARD = "LVDS_33" | CLOCK_DEDICATED_ROUTE = FALSE;   #Bank = 0, Pin name = IO_L6P,    Sch name = EXP_IO5_P
 NET "TDC_STROBE_N"    LOC = "A5"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
 
 NET "PULSE_BANK<0>"    LOC = "C7"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L10P,                           Sch name = EXP_IO7_P

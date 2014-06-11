@@ -214,6 +214,7 @@ begin
   I2C_SCL3 <= '0' when DRIVE_SCL3 = '0' else 'Z';
 
   PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
+  asd_strobe_signal <= '1' when pulse_trigger = '1' else '0';
 
   i2c_multiplexer : process (clk25)
   begin
@@ -285,7 +286,7 @@ begin
   asd_strobe_1 : asd_strobe
     port map (
       clk               => clk25,
-      asd_strobe_signal => asd_strobe_signal,
+      asd_strobe_signal => open,
       period_sel        => asd_strobe_period_sel);
 
   -- instance "pulse_gen_1"

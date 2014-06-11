@@ -76,8 +76,8 @@ begin
     if rising_edge(clk) then
       case en_counter (1 downto 0) is
         when "01"   => tdc_enc <= '1';
-        when "10"   => tdc_enc <= tdc_tr_mux(1);
-        when "11"   => tdc_enc <= tdc_tr_mux(0);
+        when "10"   => tdc_enc <= tdc_tr_mux(0);
+        when "11"   => tdc_enc <= tdc_tr_mux(1);
         when "00"   => tdc_enc <= '0';
         when others => tdc_enc <= '0';
       end case;
