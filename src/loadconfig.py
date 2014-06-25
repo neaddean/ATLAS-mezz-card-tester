@@ -2,9 +2,9 @@
 import serial
 import time
 
-tdc = serial.Serial("/dev/ttyUSB0", 500000)
+tdc = serial.Serial("/dev/ttyUSB0", 2000000)
 csr = ["000", "A00", "027", "01F", "D60", "000", "D75",
-       "000", "DEB", "C0A", "A71", "E11", "1FF", "00F", "000"]
+       "000", "DEB", "C0A", "A71", "E11", "1FF", "001", "000"]
 
 asd_regs = ["FF", "07", "6C", "01", "02", "06", "05", "07", "00", "00", "1"]
 

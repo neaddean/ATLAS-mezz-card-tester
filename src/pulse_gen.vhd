@@ -38,7 +38,7 @@ entity pulse_gen is
 end pulse_gen;
 
 architecture Behavioral of pulse_gen is
-  constant cnt_max : std_logic_vector               := X"5FF";
+  constant cnt_max : std_logic_vector               := X"FFF";
   signal tmr_en    : std_logic                      := '0';
   signal old_ctl   : std_logic;
   signal cnt       : std_logic_vector (11 downto 0) := (others => '0');

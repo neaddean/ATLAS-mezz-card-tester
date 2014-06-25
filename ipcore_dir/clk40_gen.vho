@@ -54,9 +54,10 @@
 -- "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
 -- "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 ------------------------------------------------------------------------------
--- CLK_OUT1____64.000______0.000______50.0______319.364____245.331
--- CLK_OUT2____40.000______0.000______50.0______354.946____245.331
--- CLK_OUT3____40.000____180.000______50.0______354.946____245.331
+-- CLK_OUT1____40.000______0.000______50.0______207.895____235.738
+-- CLK_OUT2____40.000____180.000______50.0______207.895____235.738
+-- CLK_OUT3____10.000______0.000______50.0______275.182____235.738
+-- CLK_OUT4____40.000______0.000______50.0______207.895____235.738
 --
 ------------------------------------------------------------------------------
 -- "Input Clock   Freq (MHz)    Input Jitter (UI)"
@@ -66,14 +67,15 @@
 
 -- The following code must appear in the VHDL architecture header:
 ------------- Begin Cut here for COMPONENT Declaration ------ COMP_TAG
-component clk_gen_25_40
+component clk40_gen
 port
  (-- Clock in ports
   clk100           : in     std_logic;
   -- Clock out ports
-  clk25          : out    std_logic;
   clk40          : out    std_logic;
-  clk40n          : out    std_logic
+  clk40n          : out    std_logic;
+  clk_strobe          : out    std_logic;
+  clk_enc          : out    std_logic
  );
 end component;
 
@@ -81,12 +83,13 @@ end component;
 -- The following code must appear in the VHDL architecture
 -- body. Substitute your own instance name and net names.
 ------------- Begin Cut here for INSTANTIATION Template ----- INST_TAG
-your_instance_name : clk_gen_25_40
+your_instance_name : clk40_gen
   port map
    (-- Clock in ports
     clk100 => clk100,
     -- Clock out ports
-    clk25 => clk25,
     clk40 => clk40,
-    clk40n => clk40n);
+    clk40n => clk40n,
+    clk_strobe => clk_strobe,
+    clk_enc => clk_enc);
 -- INST_TAG_END ------ End INSTANTIATION Template ------------

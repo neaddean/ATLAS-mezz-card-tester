@@ -78,13 +78,21 @@ architecture Behavioral of top is
       pulse_time                   : out std_logic_vector(7 downto 0));
   end component;
 
-  component clk_gen_25_40
+  component clk64_gen
     port
       (
         clk100 : in  std_logic;
-        clk25  : out std_logic;
+        clk64  : out std_logic);
+  end component;
+  
+  component clk40_gen
+    port
+      (
+        clk100 : in  std_logic;
         clk40  : out std_logic;
-        clk40n : out std_logic);
+        clk40n : out std_logic;
+		  clk_enc : out std_logic;
+		  clk_strobe : out std_logic);
   end component;
 
   component tdc_trig_res
@@ -128,10 +136,13 @@ architecture Behavioral of top is
   signal SDA, SCL             : std_logic;
   signal DRIVE_SDA, DRIVE_SCL : std_logic;
 
-  signal clk25        : std_logic;
+  signal clk64        : std_logic;
   signal clk40        : std_logic;
   signal clk40n       : std_logic;
   signal clk40_diff_s : std_logic;
+  signal clk100_in    : std_logic;
+  signal clk_enc      : std_logic;
+  signal clk_strobe    : std_logic;
 
   signal tdc_enc       : std_logic := '0';
   signal tdc_tr_strobe : std_logic := '0';
@@ -153,12 +164,25 @@ architecture Behavioral of top is
   
 begin
 
-  clk_gen : clk_gen_25_40
+ -- clk100_in <= clk100;
+  
+  clk_buf : BUFG
     port map (
-      clk100 => clk100,
-      clk25  => clk25,
+      I  => clk100,
+      O  => clk100_in);
+
+  clk_gen_40 : clk40_gen
+    port map (
+      clk100 => clk100_in,
       clk40  => clk40,
-      clk40n => clk40n);
+      clk40n => clk40n,
+		clk_enc => clk_enc,
+		clk_strobe => clk_strobe);
+		
+  clk_gen_64 : clk64_gen
+    port map (
+      clk100 => clk100_in,
+      clk64  => clk64);
 
   clk40_forward : ODDR2
     generic map(
@@ -214,11 +238,10 @@ begin
   I2C_SCL3 <= '0' when DRIVE_SCL3 = '0' else 'Z';
 
   PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
-  asd_strobe_signal <= '1' when pulse_trigger = '1' else '0';
 
-  i2c_multiplexer : process (clk25)
+  i2c_multiplexer : process (clk64)
   begin
-    if rising_edge(clk25) then
+    if rising_edge(clk64) then
       case I2C_mux_signal is
         when "000" => SDA <= I2C_SDA1;
                       SCL        <= I2C_SCL1;
@@ -241,7 +264,7 @@ begin
   -- instance "uart_top_1"
   uart_top_1 : entity work.uart_top
     port map (
-      clk                   => clk25,
+      clk                   => clk64,
       uart_tx               => uart_tx,
       uart_rx               => uart_rx,
       LED                   => Led,
@@ -268,7 +291,7 @@ begin
 
   tdc_trig_res_1 : tdc_trig_res
     port map (
-      clk           => clk40,
+      clk           => clk_enc,
       tdc_tr_strobe => tdc_tr_strobe,
       tdc_tr_mux    => tdc_tr_mux,
       tdc_enc       => tdc_enc);
@@ -276,17 +299,19 @@ begin
   tdc_fifo : tdc_ser_fifo
     port map (
       clk        => tdc_strobe,
-      rd_clk     => clk25,
+      rd_clk     => clk64,
       tdc_ser    => tdc_ser,
       fifo_reset => fifo_reset,
       fifo_flags => fifo_flags,
       fifo_d_out => fifo_d_out,
       fifo_rd_en => fifo_rd_en);
+		
+  -- asd_strobe_signal <= '1' when pulse_trigger = '1' else '0';		
 
   asd_strobe_1 : asd_strobe
     port map (
-      clk               => clk25,
-      asd_strobe_signal => open,
+      clk               => clk_strobe,
+      asd_strobe_signal => asd_strobe_signal,
       period_sel        => asd_strobe_period_sel);
 
   -- instance "pulse_gen_1"

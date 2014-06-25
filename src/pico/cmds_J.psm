@@ -427,7 +427,7 @@ jtag_get_loop:
 
 	STORE	s9, (s6)
 
-	CALL	util_print_EOL
+	;; CALL	util_print_EOL
 
 	ADD	s6, 01 		; increment CSR pointer
 	COMPARE	s6, 63		; end of CSR block
@@ -437,7 +437,7 @@ jtag_get_loop:
 	;; LOAD	s4, 00
 	;; CALL	jtag_clk
 	
-	CALL	util_print_EOL
+	;; CALL	util_print_EOL
 
 	LOAD	s4, CSR_BLOCK
 	
