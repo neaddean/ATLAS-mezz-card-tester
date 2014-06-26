@@ -10,7 +10,7 @@ TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 100000 kHz;
 
 #NET "tdc_strobe"            LOC = "V10" | IOSTANDARD = "LVCMOS33";   #Bank = 2, pin name = IO_L30N_GCLK0_USERCCLK,            Sch name = GCLK
 Net "tdc_strobe" TNM_NET = strobe_clk;
-TIMESPEC TS_strobe_clk = PERIOD strobe_clk 80 MHz;
+TIMESPEC TS_strobe_clk = PERIOD strobe_clk 40 MHz;
 
 #NET "UsbMode"        LOC = "F1"  | IOSTANDARD = "LVCMOS33";   #Bank = 3, Pin name = IO_L48N_M3BA1,                     Sch name = U-INT0#
 
@@ -66,20 +66,20 @@ NET "uart_tx"           LOC = "N18" | IOSTANDARD = "LVCMOS33";   #Bank = 1, Pin 
 
 
 ## VHDCI Connector
-NET "ASD_STROBE_P"    LOC = "B2"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L2P,                            Sch name = EXP_IO1_P
-NET "ASD_STROBE_N"    LOC = "A2"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
+NET "ASD_STROBE_P"    LOC = "B2"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L2P,                            Sch name = EXP_IO1_P
+NET "ASD_STROBE_N"    LOC = "A2"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
 
-NET "TDC_SER_P"    LOC = "D6"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = TRUE;   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
-NET "TDC_SER_N"    LOC = "C6"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = TRUE;   #Bank = 0, Pin name = IO_L3N,                            Sch name = EXP_IO2_N
+NET "TDC_SER_P"    LOC = "D6"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = "TRUE";   #Bank = 0, Pin name = IO_L3P,                            Sch name = EXP_IO2_P
+NET "TDC_SER_N"    LOC = "C6"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = "TRUE";   #Bank = 0, Pin name = IO_L3N,                            Sch name = EXP_IO2_N
 
-NET "TDC_CLK_P"    LOC = "B3"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L5P,                            Sch name = EXP_IO4_P
-NET "TDC_CLK_N"    LOC = "A3"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L5N,                            Sch name = EXP_IO4_N
+NET "TDC_CLK_P"    LOC = "B3"  | IOSTANDARD = "LVDS_33" | SLEW = "QUIETIO";   #Bank = 0, Pin name = IO_L5P,                            Sch name = EXP_IO4_P
+NET "TDC_CLK_N"    LOC = "A3"  | IOSTANDARD = "LVDS_33" | SLEW = "QUIETIO";   #Bank = 0, Pin name = IO_L5N,                            Sch name = EXP_IO4_N
 
-NET "TDC_ENC_P"    LOC = "B4"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L6P,                            Sch name = EXP_IO5_P
-NET "TDC_ENC_N"    LOC = "A4"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = FALSE;   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
+NET "TDC_ENC_P"    LOC = "B4"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L6P,                            Sch name = EXP_IO5_P
+NET "TDC_ENC_N"    LOC = "A4"  | IOSTANDARD = "LVDS_33";   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
 
-NET "TDC_STROBE_P"    LOC = "C5"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = TRUE | CLOCK_DEDICATED_ROUTE = FALSE;   #Bank = 0, Pin name = IO_L6P,    Sch name = EXP_IO5_P
-NET "TDC_STROBE_N"    LOC = "A5"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = TRUE | CLOCK_DEDICATED_ROUTE = FALSE;   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
+NET "TDC_STROBE_P"    LOC = "C5"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = "TRUE" | CLOCK_DEDICATED_ROUTE = "FALSE";   #Bank = 0, Pin name = IO_L6P,    Sch name = EXP_IO5_P
+NET "TDC_STROBE_N"    LOC = "A5"  | IOSTANDARD = "LVDS_33" | DIFF_TERM = "TRUE" | CLOCK_DEDICATED_ROUTE = "FALSE";   #Bank = 0, Pin name = IO_L6N,                            Sch name = EXP_IO5_N
 
 NET "PULSE_BANK<0>"    LOC = "C7"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L10P,                           Sch name = EXP_IO7_P
 NET "PULSE_BANK<1>"    LOC = "A7"  | IOSTANDARD = "LVCMOS33";   #Bank = 0, Pin name = IO_L10N,                           Sch name = EXP_IO7_N
