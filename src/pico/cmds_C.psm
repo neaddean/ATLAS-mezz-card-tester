@@ -8,13 +8,13 @@ CMD_CHANNEL_MASK:
 	LOAD	s0, 02
 	OUTPUT	s0, I2C_mux
 	LOAD	s6, CLI_WORD_1
-	LOAD	sE, 27		; 16-23
+	LOAD	sE, 21		; 16-23
 	CALL	channel_mask_loop
 	ADD	s6, 01		
 	LOAD	sE, 23		; 8-15
 	CALL	channel_mask_loop
 	ADD	s6, 01		
-	LOAD	sE, 21		; 0-7
+	LOAD	sE, 27		; 0-7
 	CALL	channel_mask_loop
 	CALL 	I2C_stop
 	RETURN			; exit CMD_CHANNEL_MASK

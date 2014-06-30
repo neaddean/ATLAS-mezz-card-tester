@@ -6,19 +6,32 @@
 	
 CMD_TDC_TC:
 	FETCH	s0, CLI_WORD_1
+	COMPARE s0, 04
+	CALL	Z,  trig_pulse
+	FETCH	s0, CLI_WORD_1
 	OR	s0, 10		; to mask the strobe bit on
 	OUTPUT	s0, TDC_ENC_PORT
 	LOAD	s5, s5
 	LOAD	s5, s5
 	LOAD 	s0, 00
 	OUTPUT	s0, TDC_ENC_PORT
-	FETCH	s0, CLI_WORD_1
-	COMPARE	s0, 00
-	RETURN 	NZ
-	LOAD	s0, 01
+	RETURN
+
+trig_pulse:
+	;; first trigger the pulse
+	LOAD	s0, 01	
 	OUTPUT	s0, PULSE_CTL_PORT
 	LOAD	s0, 00
 	OUTPUT	s0, PULSE_CTL_PORT
+	LOAD	sA, 02
+	LOAD	sB, D0
+	;; then wait for trigger latency
+trig_delay:
+	SUB	sB, 02
+	SUBCY	sA, 00
+	JUMP	NZ, trig_delay
+	LOAD	s0, 00
+	STORE	s0, CLI_WORD_1
 	RETURN
 
 CMD_TDC_TZ:

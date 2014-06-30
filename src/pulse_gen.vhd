@@ -63,7 +63,7 @@ begin
         if cnt = cnt_max then
           cnt           <= (others => '0');
           pulse_trigger <= '0';
-		  elsif cnt = "00" & pulse_time & "00" then
+		  elsif cnt = "0" & pulse_time & "000" then
           pulse_trigger <= '1';
           cnt           <= cnt + 1;
         else
