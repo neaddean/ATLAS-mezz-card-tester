@@ -23,8 +23,8 @@ trig_pulse:
 	OUTPUT	s0, PULSE_CTL_PORT
 	LOAD	s0, 00
 	OUTPUT	s0, PULSE_CTL_PORT
-	LOAD	sA, 02
-	LOAD	sB, D0
+	LOAD	sA, 04
+	LOAD	sB, 20
 	;; then wait for trigger latency
 trig_delay:
 	SUB	sB, 02
