@@ -568,7 +568,6 @@ jau_loop:
 	LOAD	s5, 04
 	CALL 	jtag_no_read
 	REGBANK A
-
 		
 	SUB	sF, 01		; deadtime 0000 0XXX
 	FETCH	sE, (sF)
@@ -582,10 +581,11 @@ jau_loop:
 
 	SUB	sF, 01
 	FETCH	s9, (sF)	; wilkinson adc gate 0000 XXXX
-	SL0	s9
-	SLA	sA
-	SL0	s9
-	SLA	sA		; s9:sA	0000 00XX : XX00 0000
+	LOAD	sA, 00
+	SR0	s9
+	SRA	sA
+	SR0	s9
+	SRA	sA		; s9:sA	0000 00XX : XX00 0000
 	OR	sE, sA
 	LOAD	sD, s9
 	
@@ -597,6 +597,7 @@ jau_loop:
 
 	SUB	sF, 01		
 	FETCH	s9, (sF)	; wilkinson adc thr 0000 0XXX
+	LOAD	sA, 00
 	SR0	s9
 	SRA	sA
 	SR0	s9
@@ -606,6 +607,7 @@ jau_loop:
 
 	SUB	sF, 01
 	FETCH	sA, (sF)	; main dac XXXX XXXX
+	LOAD	s9, 00
 	SL0	sA
 	SLA	s9		; s9:sA 0000 000X : XXXX XXX0
 	OR	sC, sA
