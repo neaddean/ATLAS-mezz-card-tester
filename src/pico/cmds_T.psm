@@ -11,8 +11,8 @@ CMD_TDC_TC:
 	FETCH	s0, CLI_WORD_1
 	OR	s0, 10		; to mask the strobe bit on
 	OUTPUT	s0, TDC_ENC_PORT
-	LOAD	s5, s5
-	LOAD	s5, s5
+	LOAD	s0, s0
+	LOAD	s0, s0
 	LOAD 	s0, 00
 	OUTPUT	s0, TDC_ENC_PORT
 	RETURN
@@ -47,8 +47,7 @@ CMD_TDC_TF:
 CMD_TDC_TR:
 	INPUT 	s5, FIFO_FLAGS
 	AND	s5, 01
-	COMPARE	s5, 01
-	RETURN	Z
+	RETURN	NZ
 	INPUT	s0, FIFO_IN
 	CALL	util_print_hex_byte
 	INPUT	s0, FIFO_IN
@@ -59,3 +58,148 @@ CMD_TDC_TR:
 	CALL	util_print_hex_byte
 	CALL	util_print_EOL
 	JUMP	CMD_TDC_TR
+
+
+;;; CMD_TDC_TS
+;;; run a sweep n times and count the number of hits,
+;;; where the arguement is n
+;;; sE : sF is the accumulator
+;;; s5 is the 4 LSBits of the event ID (for checking purposes) from the header
+;;; s6 is the counter of sweeps
+	
+CMD_TDC_TS:
+	;; we start with the while loop for the trigger
+	;; this is the trigger
+	CALL	CMD_TDC_TZ
+	FETCH 	s6, CLI_WORD_1
+	LOAD	sE, 00
+	LOAD	sF, 00
+	LOAD	s5, 00
+TC_0:
+	LOAD	s0, 10
+	OUTPUT	s0, TDC_ENC_PORT
+	LOAD	s0, s0
+	LOAD	s0, s0
+	LOAD 	s0, 00
+	OUTPUT	s0, TDC_ENC_PORT
+	;; now wait for window to happen	
+	CALL	50us_delay
+	;; then make sure fifo filled
+	INPUT	s0, FIFO_FLAGS
+	AND	s0, 01
+	;; try again if emtpy
+	JUMP	NZ, TC_0
+	;; start to read fifo
+ts_fifo_loop:	
+	INPUT	s0, FIFO_IN
+	AND	s0, F0
+	COMPARE	s0, C0
+	JUMP	Z, TRAILER_WORD	; check if trailer
+	COMPARE	s0, 60
+	JUMP	Z, ERROR_WORD	; check if there was an error and exit if there was
+	COMPARE	s0, A0
+	JUMP	Z, HEADER_WORD	; check if we got the header and don't exit
+	
+	INPUT	s0, FIFO_IN
+	INPUT	s0, FIFO_IN
+	INPUT	s0, FIFO_IN
+	JUMP	ts_fifo_loop
+
+ERROR_WORD:
+	CALL	uart_output_wait
+	LOAD	s0, "F"
+	OUTPUT	s0, UART_OUTPUT
+	;; throw away next one
+	INPUT	s0, FIFO_IN
+	;; save next two
+	INPUT	s8, FIFO_IN
+	AND	s8, 3F
+	INPUT	s7, FIFO_IN
+	;; check if error present
+	TEST	s7, FF
+	JUMP	NZ, error_found
+	TEST	s8, FF
+	JUMP	NZ, error_found
+	JUMP	ts_fifo_loop
+error_found:	
+	;; print the error code
+	CALL	uart_output_wait
+	LOAD	s0, "E"
+	OUTPUT	s0, UART_OUTPUT
+	LOAD	s0, s8
+	CALL	util_print_hex_byte
+	LOAD	s0, s7
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+	RETURN			; exit the function
+
+HEADER_WORD:
+	;; throw away the next one
+	INPUT	s0, FIFO_IN
+	LOAD	s0, s0
+	LOAD 	s0, s0
+	;; save event id LSBits
+	INPUT	s5, FIFO_IN
+	AND	s5, F0
+	LOAD 	s0, s0
+	;; throw away the next one
+	INPUT	s0, FIFO_IN
+	JUMP	ts_fifo_loop
+
+TRAILER_WORD:
+	;; throw away the next one
+	INPUT	s0, FIFO_IN
+	;; delay between fifo reads
+	LOAD 	s0, s0
+	LOAD 	s0, s0
+	;; now we want the hit count s1:s0 -> 0000 XXXX : XXXX XXXX
+	INPUT	s1, FIFO_IN	; msb
+	;; now save and mask event ID
+	LOAD	s4, s1
+	AND	s4, F0
+	;; compare IDs
+	COMPARE	s4, s5
+	JUMP	NZ, event_id_error ; will exit function
+	;; mask out even ID
+	AND	s1, 0F
+	LOAD	s0, sC
+	INPUT	s0, FIFO_IN	; lsb
+	;; now add up the results
+	ADD	sF, s0
+	ADDCY	sE, s1
+	;; now continue with the loop
+	SUB	s6, 01
+	JUMP	NZ, TC_0
+
+	;; print the number of hits
+	CALL	uart_output_wait
+	LOAD	s0, "N"
+	OUTPUT	s0, UART_OUTPUT
+	LOAD	s0, sE
+	CALL	util_print_hex_byte
+	LOAD	s0, sF
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+	RETURN			; exit the function
+	
+event_id_error:
+	CALL	uart_output_wait
+	LOAD	s0, "I"
+	OUTPUT	s0, UART_OUTPUT
+	LOAD	s0, s5
+	CALL	util_print_hex_byte
+	LOAD	s0, s4
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
+	RETURN			; exit the function
+
+50us_delay:
+	LOAD	sA, 02
+	LOAD	sB, 10
+50us_loop:
+	SUB	sB, 01
+	SUBCY	sA, 00
+	JUMP	NZ, 50us_loop
+	LOAD	s0, 00
+	OUTPUT	s0, 0C
+	RETURN

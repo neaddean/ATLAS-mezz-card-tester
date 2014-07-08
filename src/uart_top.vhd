@@ -359,6 +359,7 @@ begin
     if rising_edge(clk) then
       if write_strobe = '1' then
         case port_id (3 downto 0) is
+          -- X"1" is uart_tx
           when X"2" => LED       <= out_port;
           when X"3" => PWR_ON    <= out_port(0);
           when X"4" => DRIVE_SCL <= out_port(0);
@@ -369,6 +370,7 @@ begin
                        JTAG_TDO <= out_port(0);
           when X"7" => tdc_tr_strobe <= out_port(4);
                        tdc_tr_mux <= out_port (1 downto 0);
+          -- X"8" is fifo reset
           when X"9"   => asd_strobe_period_sel <= out_port;
           when X"A"   => pulse_ctl             <= out_port(0);
           when X"B"   => pulse_time            <= out_port;

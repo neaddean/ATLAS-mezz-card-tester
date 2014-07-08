@@ -84,15 +84,15 @@ architecture Behavioral of top is
         clk100 : in  std_logic;
         clk64  : out std_logic);
   end component;
-  
+
   component clk40_gen
     port
       (
-        clk100 : in  std_logic;
-        clk40  : out std_logic;
-        clk40n : out std_logic;
-		  clk_enc : out std_logic;
-		  clk_strobe : out std_logic);
+        clk100     : in  std_logic;
+        clk40      : out std_logic;
+        clk40n     : out std_logic;
+        clk_enc    : out std_logic;
+        clk_strobe : out std_logic);
   end component;
 
   component tdc_trig_res
@@ -142,7 +142,7 @@ architecture Behavioral of top is
   signal clk40_diff_s : std_logic;
   signal clk100_in    : std_logic;
   signal clk_enc      : std_logic;
-  signal clk_strobe    : std_logic;
+  signal clk_strobe   : std_logic;
 
   signal tdc_enc       : std_logic := '0';
   signal tdc_tr_strobe : std_logic := '0';
@@ -161,24 +161,24 @@ architecture Behavioral of top is
   signal pulse_trigger : std_logic;
   signal pulse_ctl     : std_logic;
   signal pulse_time    : std_logic_vector(7 downto 0) := X"9B";
-  
+
 begin
 
- -- clk100_in <= clk100;
+  -- clk100_in <= clk100;
   
   clk_buf : BUFG
     port map (
-      I  => clk100,
-      O  => clk100_in);
+      I => clk100,
+      O => clk100_in);
 
   clk_gen_40 : clk40_gen
     port map (
-      clk100 => clk100_in,
-      clk40  => clk40,
-      clk40n => clk40n,
-		clk_enc => clk_enc,
-		clk_strobe => clk_strobe);
-		
+      clk100     => clk100_in,
+      clk40      => clk40,
+      clk40n     => clk40n,
+      clk_enc    => clk_enc,
+      clk_strobe => clk_strobe);
+
   clk_gen_64 : clk64_gen
     port map (
       clk100 => clk100_in,
@@ -305,8 +305,8 @@ begin
       fifo_flags => fifo_flags,
       fifo_d_out => fifo_d_out,
       fifo_rd_en => fifo_rd_en);
-		
-  -- asd_strobe_signal <= '1' when pulse_trigger = '1' else '0';		
+
+  -- asd_strobe_signal <= '1' when pulse_trigger = '1' else '0';                
 
   asd_strobe_1 : asd_strobe
     port map (
