@@ -63,18 +63,23 @@ CMD_TDC_TR:
 ;;; CMD_TDC_TS
 ;;; run a sweep n times and count the number of hits,
 ;;; where the arguement is n
-;;; sE : sF is the accumulator
-;;; s5 is the 4 LSBits of the event ID (for checking purposes) from the header
-;;; s6 is the counter of sweeps
+;;; sD : sE : sF is the accumulator
+;;; s4 os the counter of hits msb
+;;; s5 is the counter of hits lsb
+;;; s6 is the 4 LSBits of the event ID (for checking purposes) from the header
 	
-CMD_TDC_TS:
+CMD_TDC_FTS:
 	;; we start with the while loop for the trigger
 	;; this is the trigger
 	CALL	CMD_TDC_TZ
-	FETCH 	s6, CLI_WORD_1
+	LOAD	s0, CLI_WORD_1
+	FETCH	s5, (s0)
+	ADD	s0, 01
+	FETCH	s4, (s0)
+	LOAD	sD, 00
 	LOAD	sE, 00
 	LOAD	sF, 00
-	LOAD	s5, 00
+	LOAD	s6, 00
 TC_0:
 	LOAD	s0, 10
 	OUTPUT	s0, TDC_ENC_PORT
@@ -82,15 +87,14 @@ TC_0:
 	LOAD	s0, s0
 	LOAD 	s0, 00
 	OUTPUT	s0, TDC_ENC_PORT
-	;; now wait for window to happen	
-	CALL	50us_delay
-	;; then make sure fifo filled
-	INPUT	s0, FIFO_FLAGS
-	AND	s0, 01
-	;; try again if emtpy
-	JUMP	NZ, TC_0
+	;; now wait for window to happen (not needed)	
+	;; CALL	50us_delay	
 	;; start to read fifo
-ts_fifo_loop:	
+ts_fifo_loop:
+	;; wait for data on fifo
+	INPUT 	s0, FIFO_FLAGS
+	AND	s0, 01
+	JUMP	NZ, ts_fifo_loop
 	INPUT	s0, FIFO_IN
 	AND	s0, F0
 	COMPARE	s0, C0
@@ -101,20 +105,24 @@ ts_fifo_loop:
 	JUMP	Z, HEADER_WORD	; check if we got the header and don't exit
 	
 	INPUT	s0, FIFO_IN
+	LOAD 	s0, 00
 	INPUT	s0, FIFO_IN
+	LOAD 	s0, 00
 	INPUT	s0, FIFO_IN
 	JUMP	ts_fifo_loop
 
 ERROR_WORD:
-	CALL	uart_output_wait
-	LOAD	s0, "F"
-	OUTPUT	s0, UART_OUTPUT
 	;; throw away next one
 	INPUT	s0, FIFO_IN
+	LOAD	s0, s0
 	;; save next two
 	INPUT	s8, FIFO_IN
 	AND	s8, 3F
 	INPUT	s7, FIFO_IN
+	;; remove the word from the word count
+	SUB	sF, 01
+	SUBCY	sE, 00
+	SUBCY	sD, 00
 	;; check if error present
 	TEST	s7, FF
 	JUMP	NZ, error_found
@@ -139,8 +147,8 @@ HEADER_WORD:
 	LOAD	s0, s0
 	LOAD 	s0, s0
 	;; save event id LSBits
-	INPUT	s5, FIFO_IN
-	AND	s5, F0
+	INPUT	s6, FIFO_IN
+	AND	s6, F0
 	LOAD 	s0, s0
 	;; throw away the next one
 	INPUT	s0, FIFO_IN
@@ -155,26 +163,33 @@ TRAILER_WORD:
 	;; now we want the hit count s1:s0 -> 0000 XXXX : XXXX XXXX
 	INPUT	s1, FIFO_IN	; msb
 	;; now save and mask event ID
-	LOAD	s4, s1
-	AND	s4, F0
+	LOAD	s7, s1
+	AND	s7, F0
 	;; compare IDs
-	COMPARE	s4, s5
+	COMPARE	s7, s6
 	JUMP	NZ, event_id_error ; will exit function
 	;; mask out even ID
 	AND	s1, 0F
 	LOAD	s0, sC
 	INPUT	s0, FIFO_IN	; lsb
+	;; remove header and trailer from word count
+	SUB	s0, 02
+	SUBCY	s1, 00
 	;; now add up the results
 	ADD	sF, s0
 	ADDCY	sE, s1
+	ADDCY	sD, 00
 	;; now continue with the loop
-	SUB	s6, 01
+	SUB	s5, 01
+	SUBCY	s4, 00
 	JUMP	NZ, TC_0
 
 	;; print the number of hits
 	CALL	uart_output_wait
 	LOAD	s0, "N"
 	OUTPUT	s0, UART_OUTPUT
+	LOAD	s0, sD
+	CALL	util_print_hex_byte
 	LOAD	s0, sE
 	CALL	util_print_hex_byte
 	LOAD	s0, sF
@@ -186,13 +201,14 @@ event_id_error:
 	CALL	uart_output_wait
 	LOAD	s0, "I"
 	OUTPUT	s0, UART_OUTPUT
-	LOAD	s0, s5
+	LOAD	s0, s6		; header id
 	CALL	util_print_hex_byte
-	LOAD	s0, s4
+	LOAD	s0, s7		; trailer id
 	CALL	util_print_hex_byte
 	CALL	util_print_EOL
 	RETURN			; exit the function
 
+;;; never used...
 50us_delay:
 	LOAD	sA, 02
 	LOAD	sB, 10
@@ -202,4 +218,86 @@ event_id_error:
 	JUMP	NZ, 50us_loop
 	LOAD	s0, 00
 	OUTPUT	s0, 0C
+	RETURN
+
+;;; This performs a complete threshold sweep
+;;; argument 1: number of triggers per sweep
+;;; 	XXXX
+;;; argument 2: threshold start, stop, and delta info
+;;; 	XX:XX:XX
+CMD_TDC_TS:
+
+
+
+next_channel:
+	
+
+;;; save all registers (except s0)	
+context_store:
+	LOAD	s0, MEM_USER_3
+	STORE	s1, (s0)
+	ADD	s0, 01
+	STORE	s2, (s0)
+	ADD	s0, 01
+	STORE	s3, (s0)
+	ADD	s0, 01
+	STORE	s4, (s0)
+	ADD	s0, 01
+	STORE	s5, (s0)
+	ADD	s0, 01
+	STORE	s6, (s0)
+	ADD	s0, 01
+	STORE	s7, (s0)
+	ADD	s0, 01
+	STORE	s8, (s0)
+	ADD	s0, 01
+	STORE	s9, (s0)
+	ADD	s0, 01
+	STORE	sA, (s0)
+	ADD	s0, 01
+	STORE	sB, (s0)
+	ADD	s0, 01
+	STORE	sC, (s0)
+	ADD	s0, 01
+	STORE	sD, (s0)
+	ADD	s0, 01
+	STORE	sE, (s0)
+	ADD	s0, 01
+	STORE	sF, (s0)
+	ADD	s0, 01
+	RETURN
+	
+;;; fetch all registers (except s1)
+context_fetch:	
+	LOAD	s0, MEM_USER_3
+	FETCH	s1, (s0)
+	ADD	s0, 01
+	FETCH	s2, (s0)
+	ADD	s0, 01
+	FETCH	s3, (s0)
+	ADD	s0, 01
+	FETCH	s4, (s0)
+	ADD	s0, 01
+	FETCH	s5, (s0)
+	ADD	s0, 01
+	FETCH	s6, (s0)
+	ADD	s0, 01
+	FETCH	s7, (s0)
+	ADD	s0, 01
+	FETCH	s8, (s0)
+	ADD	s0, 01
+	FETCH	s9, (s0)
+	ADD	s0, 01
+	FETCH	sA, (s0)
+	ADD	s0, 01
+	FETCH	sB, (s0)
+	ADD	s0, 01
+	FETCH	sC, (s0)
+	ADD	s0, 01
+	FETCH	sD, (s0)
+	ADD	s0, 01
+	FETCH	sE, (s0)
+	ADD	s0, 01
+	FETCH	sF, (s0)
+	ADD	s0, 01
 	RETURN
