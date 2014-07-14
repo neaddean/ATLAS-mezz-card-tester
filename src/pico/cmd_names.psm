@@ -50,7 +50,6 @@ STRING 	tdc_tc$, "tc"
 STRING  tdc_tr$, "tr"
 STRING 	tdc_tf$, "tf"
 STRING	tdc_tz$, "tz"
-STRING	tdc_fts$, "fts"
 STRING	tdc_ts$, "ts"
 
 STRING 	jtag_tdo$, "jd"
@@ -254,12 +253,6 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, GPIO_INITIALIZE'upper
 	LOAD&RETURN s1, GPIO_INITIALIZE'lower
-
-	;; CMD_TDC_FTS (tdc_fts)
-	LOAD&RETURN s1, tdc_fts$
-	LOAD&RETURN s1, 00	; end of command
-	LOAD&RETURN s1, CMD_TDC_FTS'upper
-	LOAD&RETURN s1, CMD_TDC_FTS'lower
 	
 	;; CMD_TDC_TS (tdc_ts)
 	LOAD&RETURN s1, tdc_ts$

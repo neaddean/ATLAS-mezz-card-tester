@@ -63,12 +63,13 @@ CMD_TDC_TR:
 ;;; CMD_TDC_TS
 ;;; run a sweep n times and count the number of hits,
 ;;; where the arguement is n
+;;; the second argument is the tc command number (0 or 4)
 ;;; sD : sE : sF is the accumulator
 ;;; s4 os the counter of hits msb
 ;;; s5 is the counter of hits lsb
 ;;; s6 is the 4 LSBits of the event ID (for checking purposes) from the header
 	
-CMD_TDC_FTS:
+CMD_TDC_TS:
 	;; we start with the while loop for the trigger
 	;; this is the trigger
 	CALL	CMD_TDC_TZ
@@ -76,19 +77,36 @@ CMD_TDC_FTS:
 	FETCH	s5, (s0)
 	ADD	s0, 01
 	FETCH	s4, (s0)
+	;; is there a second argument?
+	FETCH	s0, CLI_COUNT
+	COMPARE	s0, 02
+	JUMP	NZ, TC_0_LOAD
+	;; 2 arguments
+	;; store the tc command number in regbank b so we can just call
+	;; the function
+	REGBANK  B
+	FETCH	s0, CLI_WORD_2
+	STORE	s0, CLI_WORD_1
+	JUMP	TC_LOAD_DONE
+	;; else one argument (default to 0)
+	;; initialize the registers
+TC_0_LOAD:
+	REGBANK	B
+	LOAD	s0, 00
+	STORE	s0, CLI_WORD_1
+TC_LOAD_DONE:	
+	REGBANK A
 	LOAD	sD, 00
 	LOAD	sE, 00
 	LOAD	sF, 00
 	LOAD	s6, 00
-TC_0:
-	LOAD	s0, 10
-	OUTPUT	s0, TDC_ENC_PORT
-	LOAD	s0, s0
-	LOAD	s0, s0
-	LOAD 	s0, 00
-	OUTPUT	s0, TDC_ENC_PORT
+TC_LOOP:
+	;; call tc command with the loaded CLI_WORD_1 from earlier
+	REGBANK B
+	CALL	CMD_TDC_TC
+	REGBANK A
 	;; now wait for window to happen (not needed)	
-	;; CALL	50us_delay	
+	;; CALL	50us_delay  -- not needed!1
 	;; start to read fifo
 ts_fifo_loop:
 	;; wait for data on fifo
@@ -170,7 +188,6 @@ TRAILER_WORD:
 	JUMP	NZ, event_id_error ; will exit function
 	;; mask out even ID
 	AND	s1, 0F
-	LOAD	s0, sC
 	INPUT	s0, FIFO_IN	; lsb
 	;; remove header and trailer from word count
 	SUB	s0, 02
@@ -182,7 +199,7 @@ TRAILER_WORD:
 	;; now continue with the loop
 	SUB	s5, 01
 	SUBCY	s4, 00
-	JUMP	NZ, TC_0
+	JUMP	NZ, TC_LOOP
 
 	;; print the number of hits
 	CALL	uart_output_wait
@@ -218,86 +235,4 @@ event_id_error:
 	JUMP	NZ, 50us_loop
 	LOAD	s0, 00
 	OUTPUT	s0, 0C
-	RETURN
-
-;;; This performs a complete threshold sweep
-;;; argument 1: number of triggers per sweep
-;;; 	XXXX
-;;; argument 2: threshold start, stop, and delta info
-;;; 	XX:XX:XX
-CMD_TDC_TS:
-
-
-
-next_channel:
-	
-
-;;; save all registers (except s0)	
-context_store:
-	LOAD	s0, MEM_USER_3
-	STORE	s1, (s0)
-	ADD	s0, 01
-	STORE	s2, (s0)
-	ADD	s0, 01
-	STORE	s3, (s0)
-	ADD	s0, 01
-	STORE	s4, (s0)
-	ADD	s0, 01
-	STORE	s5, (s0)
-	ADD	s0, 01
-	STORE	s6, (s0)
-	ADD	s0, 01
-	STORE	s7, (s0)
-	ADD	s0, 01
-	STORE	s8, (s0)
-	ADD	s0, 01
-	STORE	s9, (s0)
-	ADD	s0, 01
-	STORE	sA, (s0)
-	ADD	s0, 01
-	STORE	sB, (s0)
-	ADD	s0, 01
-	STORE	sC, (s0)
-	ADD	s0, 01
-	STORE	sD, (s0)
-	ADD	s0, 01
-	STORE	sE, (s0)
-	ADD	s0, 01
-	STORE	sF, (s0)
-	ADD	s0, 01
-	RETURN
-	
-;;; fetch all registers (except s1)
-context_fetch:	
-	LOAD	s0, MEM_USER_3
-	FETCH	s1, (s0)
-	ADD	s0, 01
-	FETCH	s2, (s0)
-	ADD	s0, 01
-	FETCH	s3, (s0)
-	ADD	s0, 01
-	FETCH	s4, (s0)
-	ADD	s0, 01
-	FETCH	s5, (s0)
-	ADD	s0, 01
-	FETCH	s6, (s0)
-	ADD	s0, 01
-	FETCH	s7, (s0)
-	ADD	s0, 01
-	FETCH	s8, (s0)
-	ADD	s0, 01
-	FETCH	s9, (s0)
-	ADD	s0, 01
-	FETCH	sA, (s0)
-	ADD	s0, 01
-	FETCH	sB, (s0)
-	ADD	s0, 01
-	FETCH	sC, (s0)
-	ADD	s0, 01
-	FETCH	sD, (s0)
-	ADD	s0, 01
-	FETCH	sE, (s0)
-	ADD	s0, 01
-	FETCH	sF, (s0)
-	ADD	s0, 01
 	RETURN
