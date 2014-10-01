@@ -60,7 +60,7 @@
 ------------------------------------------------------------------------------
 -- "Input Clock   Freq (MHz)    Input Jitter (UI)"
 ------------------------------------------------------------------------------
--- __primary_________100.000____________0.010
+-- __primary______________80____________0.010
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -82,7 +82,7 @@ end clk64_gen;
 
 architecture xilinx of clk64_gen is
   attribute CORE_GENERATION_INFO : string;
-  attribute CORE_GENERATION_INFO of xilinx : architecture is "clk64_gen,clk_wiz_v3_6,{component_name=clk64_gen,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=DCM_SP,num_out_clk=1,clkin1_period=10.0,clkin2_period=10.0,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}";
+  attribute CORE_GENERATION_INFO of xilinx : architecture is "clk64_gen,clk_wiz_v3_6,{component_name=clk64_gen,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=DCM_SP,num_out_clk=1,clkin1_period=12.5,clkin2_period=12.5,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}";
 	  -- Input clock buffering / unused connectors
   signal clkin1            : std_logic;
   -- Output clock buffering
@@ -109,10 +109,10 @@ begin
   dcm_sp_inst: DCM_SP
   generic map
    (CLKDV_DIVIDE          => 2.000,
-    CLKFX_DIVIDE          => 25,
-    CLKFX_MULTIPLY        => 16,
+    CLKFX_DIVIDE          => 5,
+    CLKFX_MULTIPLY        => 4,
     CLKIN_DIVIDE_BY_2     => FALSE,
-    CLKIN_PERIOD          => 10.0,
+    CLKIN_PERIOD          => 12.5,
     CLKOUT_PHASE_SHIFT    => "NONE",
     CLK_FEEDBACK          => "1X",
     DESKEW_ADJUST         => "SYSTEM_SYNCHRONOUS",

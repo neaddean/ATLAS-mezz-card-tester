@@ -37,14 +37,19 @@ entity top is
   port (uart_rx                      : in    std_logic;
         uart_tx                      : out   std_logic;
         clk100                       : in    std_logic;
-        Led                          : out   std_logic_vector (7 downto 0);
-        sw                           : in    std_logic_vector (7 downto 0);
+        Led                          : out   std_logic_vector (3 downto 0);
         I2C_SDA1, I2C_SCL1           : inout std_logic;
         I2C_SDA2, I2C_SCL2           : inout std_logic;
-        I2C_SDA3, I2C_SCL3           : inout std_logic;
-        PWR_ON                       : out   std_logic;
+        GPIO0_P, GPIO0_N             : out   std_logic;
+        GPIO1_P, GPIO1_N             : out   std_logic;
+        GPIO2_P, GPIO2_N             : out   std_logic;
+        PWR_ON, PWR_OFF              : out   std_logic;
         JTAG_TMS, JTAG_TCK, JTAG_TDO : out   std_logic;
         JTAG_TDI                     : in    std_logic;
+        DVDD_GS0, DVDD_GS1, DVDD_EN  : out   std_logic;
+        DVDD_FAULT                   : in    std_logic;
+        AVDD_GS0, AVDD_GS1, AVDD_EN  : out   std_logic;
+        AVDD_FAULT                   : in    std_logic;
         TDC_CLK_P, TDC_CLK_N         : out   std_logic;
         TDC_ENC_P, TDC_ENC_N         : out   std_logic;
         TDC_SER_P, TDC_SER_N         : in    std_logic;
@@ -60,7 +65,7 @@ architecture Behavioral of top is
       clk                          : in  std_logic;
       uart_tx                      : out std_logic;
       uart_rx                      : in  std_logic;
-      LED                          : out std_logic_vector (7 downto 0);
+      LED                          : out std_logic_vector (3 downto 0);
       sw                           : in  std_logic_vector (7 downto 0);
       DRIVE_SCL, DRIVE_SDA         : out std_logic;
       I2C_SDA, I2C_SCL             : in  std_logic;
@@ -68,12 +73,16 @@ architecture Behavioral of top is
       PWR_ON                       : out std_logic;
       JTAG_TMS, JTAG_TCK, JTAG_TDO : out std_logic;
       JTAG_TDI                     : in  std_logic;
+      DVDD_GS0, DVDD_GS1, DVDD_EN  : out std_logic;
+      DVDD_FAULT                   : in  std_logic;
+      AVDD_GS0, AVDD_GS1, AVDD_EN  : out std_logic;
+      AVDD_FAULT                   : in  std_logic;
       tdc_tr_strobe                : out std_logic;
       tdc_tr_mux                   : out std_logic_vector(1 downto 0);
       fifo_flags                   : in  std_logic_vector(1 downto 0);
       fifo_rd_en, fifo_reset       : out std_logic;
       fifo_d_in                    : in  std_logic_vector(7 downto 0);
-      asd_strobe_period_sel        : out std_logic;
+      asd_strobe_period_sel        : out std_logic_vector(7 downto 0);
       pulse_ctl                    : out std_logic;
       pulse_time                   : out std_logic_vector(7 downto 0));
   end component;
@@ -162,6 +171,8 @@ architecture Behavioral of top is
   signal pulse_ctl     : std_logic;
   signal pulse_time    : std_logic_vector(7 downto 0) := X"9B";
 
+  signal GPIO0, GPIO1, GPIO2 : std_logic;
+
 begin
 
   -- clk100_in <= clk100;
@@ -230,14 +241,34 @@ begin
       I  => TDC_STROBE_P,
       IB => TDC_STROBE_N);
 
+  GPIO0_DS : OBUFDS
+    port map (
+      I  => GPIO0,
+      O  => GPIO0_P,
+      OB => GPIO0_N);
+
+  GPIO1_DS : OBUFDS
+    port map (
+      I  => GPIO1,
+      O  => GPIO1_P,
+      OB => GPIO1_N);
+
+  GPIO2_DS : OBUFDS
+    port map (
+      I  => GPIO2,
+      O  => GPIO2_P,
+      OB => GPIO2_N);
+
   I2C_SDA1 <= '0' when DRIVE_SDA1 = '0' else 'Z';
   I2C_SCL1 <= '0' when DRIVE_SCL1 = '0' else 'Z';
   I2C_SDA2 <= '0' when DRIVE_SDA2 = '0' else 'Z';
   I2C_SCL2 <= '0' when DRIVE_SCL2 = '0' else 'Z';
-  I2C_SDA3 <= '0' when DRIVE_SDA3 = '0' else 'Z';
-  I2C_SCL3 <= '0' when DRIVE_SCL3 = '0' else 'Z';
 
   PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
+
+  GPIO0 <= '0';
+  GPIO1 <= '0';
+  GPIO2 <= '0';
 
   i2c_multiplexer : process (clk64)
   begin
@@ -251,10 +282,6 @@ begin
                       SCL        <= I2C_SCL2;
                       DRIVE_SDA2 <= DRIVE_SDA;
                       DRIVE_SCL2 <= DRIVE_SCL;
-        when "010" => SDA <= I2C_SDA3;
-                      SCL        <= I2C_SCL3;
-                      DRIVE_SDA3 <= DRIVE_SDA;
-                      DRIVE_SCL3 <= DRIVE_SCL;
         when others => null;
       end case;
     end if;
@@ -268,13 +295,11 @@ begin
       uart_tx               => uart_tx,
       uart_rx               => uart_rx,
       LED                   => Led,
-      sw                    => sw,
       DRIVE_SCL             => DRIVE_SCL,
       DRIVE_SDA             => DRIVE_SDA,
       SDA                   => SDA,
       SCL                   => SCL,
       I2C_mux_signal        => I2C_mux_signal,
-      PWR_ON                => PWR_ON,
       JTAG_TMS              => JTAG_TMS,
       JTAG_TCK              => JTAG_TCK,
       JTAG_TDO              => JTAG_TDO,
@@ -287,7 +312,16 @@ begin
       fifo_d_in             => fifo_d_out,
       asd_strobe_period_sel => asd_strobe_period_sel,
       pulse_ctl             => pulse_ctl,
-      pulse_time            => pulse_time);
+      pulse_time            => pulse_time,
+      DVDD_FAULT            => DVDD_FAULT,
+      AVDD_FAULT            => AVDD_FAULT,
+      DVDD_GS0              => DVDD_GS0,
+      DVDD_GS1              => DVDD_GS1,
+      AVDD_GS0              => AVDD_GS0,
+      AVDD_GS1              => AVDD_GS1,
+      DVDD_EN               => DVDD_EN,
+      AVDD_EN               => AVDD_EN
+		);
 
   tdc_trig_res_1 : tdc_trig_res
     port map (

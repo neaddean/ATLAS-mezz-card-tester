@@ -9,6 +9,7 @@
 ;;; | util_print_EOL           | x  | x  |    |    |    |    |    |    |    |    |    |    |
 ;;; | util_print_prompt        | x  | x  |    |    |    |    |    |    |    |    |    |    |
 ;;; | util_print_string        | x  | x  |    |    |    |    |    |    |    |    | x  | x  |
+;;; | util_print_hex_byte      | x  | x  | x  | x  |    |    |    |    |    |    |    |    |
 ;;; 
 
 ;;; ============================================================================
@@ -117,7 +118,7 @@ util_byte_to_hex_next:
 util_byte_to_hex_end:	
 	RETURN
 ;;; ============================================================================
-;;; Convert one byte into two bytes of ASCII hex
+;;; Prints one byte into as bytes of ASCII hex
 	;; loads s0
 	;; outputs s2,s1
 ;;; ============================================================================

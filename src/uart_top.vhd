@@ -32,14 +32,16 @@ entity uart_top is
     clk                          : in  std_logic;
     uart_tx                      : out std_logic;
     uart_rx                      : in  std_logic;
-    LED                          : out std_logic_vector (7 downto 0);
-    sw                           : in  std_logic_vector (7 downto 0);
+    LED                          : out std_logic_vector (3 downto 0);
     DRIVE_SCL, DRIVE_SDA         : out std_logic;
     SDA, SCL                     : in  std_logic;
     I2C_mux_signal               : out std_logic_vector (2 downto 0);
-    PWR_ON                       : out std_logic;
     JTAG_TMS, JTAG_TCK, JTAG_TDO : out std_logic;
     JTAG_TDI                     : in  std_logic;
+    DVDD_GS0, DVDD_GS1, DVDD_EN  : out std_logic;
+    DVDD_FAULT                   : in  std_logic;
+    AVDD_GS0, AVDD_GS1, AVDD_EN  : out std_logic;
+    AVDD_FAULT                   : in  std_logic;
     tdc_tr_strobe                : out std_logic;
     tdc_tr_mux                   : out std_logic_vector(1 downto 0);
     fifo_flags                   : in  std_logic_vector(1 downto 0);
@@ -322,7 +324,8 @@ begin
         when X"1" => in_port    <= uart_rx_data_out;
         when X"2" => in_port(0) <= SCL;
                      in_port(1) <= SDA;
-        when X"3" => in_port <= sw;
+        when X"3" => in_port(0) <= DVDD_FAULT;
+                     in_port(4) <= AVDD_FAULT;
         when X"6" => in_port <= "0000000" & JTAG_TDI;
         when X"5" => in_port <= "000" & fifo_flags(1) & "000" & fifo_flags(0);
         when X"7" => in_port <= fifo_d_in;
@@ -360,8 +363,9 @@ begin
       if write_strobe = '1' then
         case port_id (3 downto 0) is
           -- X"1" is uart_tx
-          when X"2" => LED       <= out_port;
-          when X"3" => PWR_ON    <= out_port(0);
+          when X"2" => LED     <= out_port(3 downto 0);
+          when X"3" => DVDD_EN <= out_port(0);
+                       AVDD_EN <= out_port(4);
           when X"4" => DRIVE_SCL <= out_port(0);
                        DRIVE_SDA <= out_port(1);
           when X"5" => I2C_mux_signal <= out_port(2 downto 0);
@@ -371,9 +375,13 @@ begin
           when X"7" => tdc_tr_strobe <= out_port(4);
                        tdc_tr_mux <= out_port (1 downto 0);
           -- X"8" is fifo reset
-          when X"9"   => asd_strobe_period_sel <= out_port;
-          when X"A"   => pulse_ctl             <= out_port(0);
-          when X"B"   => pulse_time            <= out_port;
+          when X"9" => asd_strobe_period_sel <= out_port;
+          when X"A" => pulse_ctl             <= out_port(0);
+          when X"B" => pulse_time            <= out_port;
+          when X"C" => DVDD_GS0  <= out_port(0);
+                       DVDD_GS1  <= out_port(1);
+                       AVDD_GS0  <= out_port(6);
+                       AVDD_GS1  <= out_port(7);
           when others => null;
         end case;
       end if;
