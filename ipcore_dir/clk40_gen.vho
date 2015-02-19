@@ -57,7 +57,6 @@
 -- CLK_OUT1____40.000______0.000______50.0______200.000____150.000
 -- CLK_OUT2____40.000____180.000______50.0______300.000____150.000
 -- CLK_OUT3____10.000______0.000______50.0_____1200.000____150.000
--- CLK_OUT4____40.000______0.000______50.0______200.000____150.000
 --
 ------------------------------------------------------------------------------
 -- "Input Clock   Freq (MHz)    Input Jitter (UI)"
@@ -74,8 +73,7 @@ port
   -- Clock out ports
   clk40          : out    std_logic;
   clk40n          : out    std_logic;
-  clk_strobe          : out    std_logic;
-  clk_enc          : out    std_logic
+  clk_strobe          : out    std_logic
  );
 end component;
 
@@ -90,6 +88,5 @@ your_instance_name : clk40_gen
     -- Clock out ports
     clk40 => clk40,
     clk40n => clk40n,
-    clk_strobe => clk_strobe,
-    clk_enc => clk_enc);
+    clk_strobe => clk_strobe);
 -- INST_TAG_END ------ End INSTANTIATION Template ------------

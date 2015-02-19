@@ -6,11 +6,11 @@
 
 
 CMD_DAC_WRITE:
-	LOAD	s0, 02
+	LOAD	s0, 01
 	OUTPUT 	s0, I2C_mux
 	LOAD	s0, CLI_WORD_2
 	FETCH	s2, (s0)
-	ADD	s0, 01
+	ADD	s0, 01		
 	FETCH	s1, (s0)
 	SL0	s2
 	SLA	s1
@@ -22,11 +22,11 @@ CMD_DAC_WRITE:
 	SLA	s1
 	CALL	I2C_initialise
 	CALL	I2C_start
-	LOAD	sE, 73 		; address of DAC
+	LOAD	sE, 1A 		; address of DAC
 	SL0	sE		; LSB = 0 for write
 	CALL	I2C_Tx_byte
 	CALL	I2C_Rx_ACK
-	LOAD	sE, 30		; load command code
+	LOAD	sE, 58		; load command code
 	FETCH	s6, CLI_WORD_1
 	OR	sE, s6		; load dac number
 	CALL	I2C_Tx_byte

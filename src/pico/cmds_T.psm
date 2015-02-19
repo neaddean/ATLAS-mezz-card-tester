@@ -80,20 +80,21 @@ CMD_TDC_TS:
 	;; is there a second argument?
 	FETCH	s0, CLI_COUNT
 	COMPARE	s0, 02
-	JUMP	NZ, TC_0_LOAD
 	;; 2 arguments
 	;; store the tc command number in regbank b so we can just call
 	;; the function
-	REGBANK  B
-	FETCH	s0, CLI_WORD_2
-	STORE	s0, CLI_WORD_1
-	JUMP	TC_LOAD_DONE
+	JUMP	Z, TC_ARG_LOAD
 	;; else one argument (default to 0)
-	;; initialize the registers
-TC_0_LOAD:
 	REGBANK	B
 	LOAD	s0, 00
 	STORE	s0, CLI_WORD_1
+	JUMP	TC_LOAD_DONE	; can NOT belive i forgot this..
+	;; initialize the registers
+TC_ARG_LOAD:
+	REGBANK B
+	FETCH	s0, CLI_WORD_2
+	STORE	s0, CLI_WORD_1
+
 TC_LOAD_DONE:	
 	REGBANK A
 	LOAD	sD, 00
@@ -103,10 +104,18 @@ TC_LOAD_DONE:
 TC_LOOP:
 	;; call tc command with the loaded CLI_WORD_1 from earlier
 	REGBANK B
+	;; now wait for window to happen (not needed)
+	FETCH 	s0, CLI_WORD_2
+	STORE 	s0, CLI_WORD_1
+	;; FETCH	s0, CLI_WORD_1
+
+	;; CALL	util_print_hex_byte
 	CALL	CMD_TDC_TC
+
+	FETCH 	s0, CLI_WORD_2
+	COMPARE s0, 04
+	CALL	Z, 50us_delay  ;; -- not needed!1
 	REGBANK A
-	;; now wait for window to happen (not needed)	
-	;; CALL	50us_delay  -- not needed!1
 	;; start to read fifo
 ts_fifo_loop:
 	;; wait for data on fifo
@@ -225,14 +234,26 @@ event_id_error:
 	CALL	util_print_EOL
 	RETURN			; exit the function
 
-;;; never used...
+;; never used...
 50us_delay:
-	LOAD	sA, 02
-	LOAD	sB, 10
+	;; for 50us  0210
+	;; for 200us 0840
+	;; for 2.5ms 682A
+	;; for 1.0ms 29AA
+	LOAD	sA, 29
+	LOAD	sB, AA
 50us_loop:
 	SUB	sB, 01
 	SUBCY	sA, 00
 	JUMP	NZ, 50us_loop
-	LOAD	s0, 00
-	OUTPUT	s0, 0C
+	;; LOAD	s0, 00
+	;; OUTPUT	s0, 0C
+	RETURN
+	
+
+CMD_TEST_FAULT:
+	INPUT	s0, TEST_FAULT_PORT
+	OR	s0, 11
+	CALL	util_print_hex_byte
+	CALL	util_print_EOL
 	RETURN

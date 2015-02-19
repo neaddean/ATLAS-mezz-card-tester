@@ -69,7 +69,7 @@ CONSTANT	JTAG_PORT,	06	; JTAG is the same input/output
 CONSTANT 	UART_STATUS,	00	; Port with the RX/TX status bits
 CONSTANT 	UART_INPUT, 	01	; 8bit reading port on microC
 CONSTANT 	I2C_input_port,	02
-CONSTANT	SW_PORT,	03
+CONSTANT	TEST_FAULT_PORT,03
 CONSTANT	FIFO_FLAGS,	05
 CONSTANT	FIFO_IN,	07
 ;; CONSTANT	FIFO_WORD_2,	08
@@ -87,6 +87,8 @@ CONSTANT	FIFO_RESET,	08
 CONSTANT	ASD_STROBE_PERIOD, 09
 CONSTANT	PULSE_CTL_PORT, 0A
 CONSTANT	PULSE_PERIOD_PORT, 0B
+CONSTANT	GAIN_SET_PORT, 0C
+CONSTANT	GPIO_PORT, 0D
 
 ;;; I2C mux addresses
 CONSTANT	ADC1_ADDR,	00
@@ -96,7 +98,8 @@ CONSTANT	ADC2_ADDR,	01
 ;;; ============================================================================
 ;;; START
 ;;; ============================================================================
-start:		
+start:
+	CALL do_startup_delay
 	CALL hard_reset
 	CALL I2C_initialise
 	CALL GPIO_INITIALIZE
@@ -138,6 +141,16 @@ hard_reset:
 	
 	CALL util_print_prompt
 	RETURN
+
+do_startup_delay:
+	LOAD s0, FF		; 1 us delay
+	LOAD s1, FF
+startup_delay:
+	SUB s0, 01
+	SUBCY s1, 00
+	JUMP NZ, startup_delay
+	RETURN
+	
 ;;; ============================================================================
 ;;; Reset the software to initial conditions
 	;; uses s0

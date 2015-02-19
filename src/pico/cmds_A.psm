@@ -4,11 +4,6 @@
 ;;; | name          | s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | sA | sB |
 ;;; | CMD_READ_ADC  | x  |    |    |    |    |    |    |    |    |    |    |    |
 
-;;; ============================================================================
-;;; Print Help functions
-	;; uses sA-sB, s1
-;;; ============================================================================
-
 CMD_ADC_READ:
 	;; FETCH	s0, CLI_COUNT
 	;; CALL	util_print_hex_byte
@@ -26,15 +21,17 @@ CMD_ADC_READ:
 
 	FETCH	s4, CLI_WORD_1
 	COMPARE	s4, 04
-	JUMP	NC, sel_adc2 	; if greater than  or equal to 4, we must use select the second adc
+	JUMP	NC, sel_adc2 	; if >= 4, we must use select the second adc
 sel_adc1:
-	LOAD	s0, 00
+	LOAD	s0, 02
 	OUTPUT	s0, I2C_mux
+	LOAD 	s7, 28		; adc1 address
 	FETCH	s4, CLI_WORD_1
 	JUMP	align_channel
 sel_adc2:
-	LOAD	s0, 01
+	LOAD	s0, 02
 	OUTPUT	s0, I2C_mux
+	LOAD	s7, 29		; adc2 address
 	FETCH	s4, CLI_WORD_1
 	SUB	s4, 04		; normalize the channel to 0-3
 align_channel:
@@ -48,7 +45,7 @@ align_channel_loop:
 channel_aligned:	
 	CALL	I2C_initialise
 	CALL	I2C_start
-	LOAD	sE, 28
+	LOAD	sE, s7		;load the pre-set adc address
 	SL0	sE 		;LSB = 0 for write
 	CALL	I2C_Tx_byte
 	CALL	I2C_Rx_ACK
@@ -65,7 +62,7 @@ channel_aligned:
 	;; now we read
 	CALL	I2C_initialise
 	CALL	I2C_start
-	LOAD	sE, 28
+	LOAD	sE, s7
 	SL1	sE 		;LSB = 1 for write
 	CALL	I2C_Tx_byte
 	CALL	I2C_Rx_ACK

@@ -58,7 +58,6 @@
 -- CLK_OUT1____40.000______0.000______50.0______200.000____150.000
 -- CLK_OUT2____40.000____180.000______50.0______300.000____150.000
 -- CLK_OUT3____10.000______0.000______50.0_____1200.000____150.000
--- CLK_OUT4____40.000______0.000______50.0______200.000____150.000
 --
 ------------------------------------------------------------------------------
 -- "Input Clock   Freq (MHz)    Input Jitter (UI)"
@@ -81,14 +80,13 @@ port
   -- Clock out ports
   clk40          : out    std_logic;
   clk40n          : out    std_logic;
-  clk_strobe          : out    std_logic;
-  clk_enc          : out    std_logic
+  clk_strobe          : out    std_logic
  );
 end clk40_gen;
 
 architecture xilinx of clk40_gen is
   attribute CORE_GENERATION_INFO : string;
-  attribute CORE_GENERATION_INFO of xilinx : architecture is "clk40_gen,clk_wiz_v3_6,{component_name=clk40_gen,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=DCM_SP,num_out_clk=4,clkin1_period=12.5,clkin2_period=12.5,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}";
+  attribute CORE_GENERATION_INFO of xilinx : architecture is "clk40_gen,clk_wiz_v3_6,{component_name=clk40_gen,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=DCM_SP,num_out_clk=3,clkin1_period=12.5,clkin2_period=12.5,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}";
 	  -- Input clock buffering / unused connectors
   signal clkin1            : std_logic;
   -- Output clock buffering
@@ -177,10 +175,5 @@ begin
   port map
    (O   => clk_strobe,
     I   => clkfx);
-
-  clkout4_buf : BUFG
-  port map
-   (O   => clk_enc,
-    I   => clk0);
 
 end xilinx;

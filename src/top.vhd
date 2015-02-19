@@ -84,7 +84,8 @@ architecture Behavioral of top is
       fifo_d_in                    : in  std_logic_vector(7 downto 0);
       asd_strobe_period_sel        : out std_logic_vector(7 downto 0);
       pulse_ctl                    : out std_logic;
-      pulse_time                   : out std_logic_vector(7 downto 0));
+      pulse_time                   : out std_logic_vector(7 downto 0);
+      pico_gpio                    : out std_logic_vector(2 downto 0));
   end component;
 
   component clk64_gen
@@ -100,7 +101,7 @@ architecture Behavioral of top is
         clk100     : in  std_logic;
         clk40      : out std_logic;
         clk40n     : out std_logic;
-        clk_enc    : out std_logic;
+--        clk_enc    : out std_logic;
         clk_strobe : out std_logic);
   end component;
 
@@ -172,11 +173,12 @@ architecture Behavioral of top is
   signal pulse_time    : std_logic_vector(7 downto 0) := X"9B";
 
   signal GPIO0, GPIO1, GPIO2 : std_logic;
+  signal pico_gpio           : std_logic_vector(2 downto 0);
 
 begin
 
   -- clk100_in <= clk100;
-  
+
   clk_buf : BUFG
     port map (
       I => clk100,
@@ -187,8 +189,8 @@ begin
       clk100     => clk100_in,
       clk40      => clk40,
       clk40n     => clk40n,
-      clk_enc    => clk_enc,
       clk_strobe => clk_strobe);
+		--      clk_enc    => clk_enc,
 
   clk_gen_64 : clk64_gen
     port map (
@@ -264,21 +266,21 @@ begin
   I2C_SDA2 <= '0' when DRIVE_SDA2 = '0' else 'Z';
   I2C_SCL2 <= '0' when DRIVE_SCL2 = '0' else 'Z';
 
-  PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
+  GPIO0 <= pico_gpio(0);
+  GPIO1 <= pico_gpio(1);
+  GPIO2 <= pico_gpio(2);
 
-  GPIO0 <= '0';
-  GPIO1 <= '0';
-  GPIO2 <= '0';
+  PULSE_BANK <= (others => '1') when pulse_trigger = '1' else (others => '0');
 
   i2c_multiplexer : process (clk64)
   begin
     if rising_edge(clk64) then
       case I2C_mux_signal is
-        when "000" => SDA <= I2C_SDA1;
+        when "001" => SDA <= I2C_SDA1;
                       SCL        <= I2C_SCL1;
                       DRIVE_SDA1 <= DRIVE_SDA;
                       DRIVE_SCL1 <= DRIVE_SCL;
-        when "001" => SDA <= I2C_SDA2;
+        when "010" => SDA <= I2C_SDA2;
                       SCL        <= I2C_SCL2;
                       DRIVE_SDA2 <= DRIVE_SDA;
                       DRIVE_SCL2 <= DRIVE_SCL;
@@ -320,12 +322,12 @@ begin
       AVDD_GS0              => AVDD_GS0,
       AVDD_GS1              => AVDD_GS1,
       DVDD_EN               => DVDD_EN,
-      AVDD_EN               => AVDD_EN
-		);
+      AVDD_EN               => AVDD_EN,
+      pico_gpio             => pico_gpio);
 
   tdc_trig_res_1 : tdc_trig_res
     port map (
-      clk           => clk_enc,
+      clk           => clk40,
       tdc_tr_strobe => tdc_tr_strobe,
       tdc_tr_mux    => tdc_tr_mux,
       tdc_enc       => tdc_enc);

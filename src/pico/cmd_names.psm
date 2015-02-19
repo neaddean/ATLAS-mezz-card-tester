@@ -8,6 +8,7 @@
 INCLUDE "cmds_A.psm"
 INCLUDE "cmds_C.psm"
 INCLUDE "cmds_D.psm"
+INCLUDE "cmds_G.psm"
 INCLUDE "cmds_H.psm"
 INCLUDE	"cmds_I.psm"
 INCLUDE "cmds_J.psm"
@@ -58,6 +59,10 @@ STRING 	jtag_write$, "jw"
 STRING 	jtag_read$, "jr"
 STRING 	i2c_write$, "iw"
 STRING 	i2c_read$, "ir"
+
+STRING 	test_fault$, "test_fault"
+STRING 	gain_set$, "gain_set"
+STRING 	gpio$, "gpio"
 	
 	
 cmds:
@@ -259,5 +264,23 @@ cmds:
 	LOAD&RETURN s1, 00	; end of command
 	LOAD&RETURN s1, CMD_TDC_TS'upper
 	LOAD&RETURN s1, CMD_TDC_TS'lower
+
+	;; CMD_TEST_FAULT (test_fault)
+	LOAD&RETURN s1, test_fault$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_TEST_FAULT'upper
+	LOAD&RETURN s1, CMD_TEST_FAULT'lower
+
+	;; CMD_GAIN_SET (gain_set)
+	LOAD&RETURN s1, gain_set$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_GAIN_SET'upper
+	LOAD&RETURN s1, CMD_GAIN_SET'lower
+
+	;; CMD_GPIO (gpio)
+	LOAD&RETURN s1, gpio$
+	LOAD&RETURN s1, 00	; end of command
+	LOAD&RETURN s1, CMD_GPIO'upper
+	LOAD&RETURN s1, CMD_GPIO'lower
 	
 	LOAD&RETURN s1, FF	; end of commands string

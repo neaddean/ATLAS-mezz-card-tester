@@ -49,7 +49,8 @@ entity uart_top is
     fifo_d_in                    : in  std_logic_vector(7 downto 0);
     asd_strobe_period_sel        : out std_logic_vector(7 downto 0);
     pulse_ctl                    : out std_logic;
-    pulse_time                   : out std_logic_vector(7 downto 0));
+    pulse_time                   : out std_logic_vector(7 downto 0);
+    pico_gpio                    : out std_logic_vector(2 downto 0));
 end uart_top;
 
 architecture Behavioral of uart_top is
@@ -378,10 +379,11 @@ begin
           when X"9" => asd_strobe_period_sel <= out_port;
           when X"A" => pulse_ctl             <= out_port(0);
           when X"B" => pulse_time            <= out_port;
-          when X"C" => DVDD_GS0  <= out_port(0);
-                       DVDD_GS1  <= out_port(1);
-                       AVDD_GS0  <= out_port(6);
-                       AVDD_GS1  <= out_port(7);
+          when X"C" => DVDD_GS0              <= out_port(0);
+                       DVDD_GS1 <= out_port(1);
+                       AVDD_GS0 <= out_port(4);
+                       AVDD_GS1 <= out_port(5);
+          when X"D"   => pico_gpio <= out_port(2 downto 0);
           when others => null;
         end case;
       end if;

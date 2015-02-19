@@ -191,7 +191,7 @@ jtag_clk:
 	RETURN
 	
 do_jtag_delay:
-	LOAD s0, 01		; 1 us delay
+	LOAD s0, FF		; 1 us delay
 jtag_delay:
 	SUB s0, 01
 	JUMP NZ, jtag_delay

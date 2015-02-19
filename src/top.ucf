@@ -5,19 +5,18 @@
 
 # Clock signal
 NET "clk100"            LOC = "P55" | IOSTANDARD = "LVCMOS33";   #Bank = 2, pin name = IO_L30N_GCLK0_USERCCLK,            Sch name = GCLK
-Net "clk100" TNM_NET = sys_clk_pin;
-TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 80 MHz;
+Net "clk100" TNM_NET = "clk100";
+TIMESPEC TS_sys_clk_pin = PERIOD "clk100" 80 MHz;
 
 #NET "tdc_strobe"            LOC = "V10" | IOSTANDARD = "LVCMOS33";   #Bank = 2, pin name = IO_L30N_GCLK0_USERCCLK,            Sch name = GCLK
-Net "tdc_strobe" TNM_NET = strobe_clk;
-TIMESPEC TS_strobe_clk = PERIOD strobe_clk 40 MHz;
+Net "tdc_strobe" TNM_NET = "tdc_strobe";
+TIMESPEC TS_strobe_clk = PERIOD "tdc_strobe" 40 MHz;
 
 ## Leds
 NET "Led<0>"         LOC = "P102" | IOSTANDARD = "LVCMOS33";   
 NET "Led<1>"         LOC = "P101" | IOSTANDARD = "LVCMOS33";   
 NET "Led<2>"         LOC = "P100" | IOSTANDARD = "LVCMOS33";   
 NET "Led<3>"         LOC = "P99" | IOSTANDARD = "LVCMOS33";  
-
 
 ## Usb-RS232 interface
 NET "uart_rx"         LOC = "P35" | IOSTANDARD = "LVCMOS33";   
@@ -59,8 +58,8 @@ NET "I2C_SDA1"   LOC = "P78" | IOSTANDARD = "LVCMOS33";
 NET "I2C_SCL2"   LOC = "P120" | IOSTANDARD = "LVCMOS33";   
 NET "I2C_SDA2"   LOC = "P121" | IOSTANDARD = "LVCMOS33";   
 
-NET "JTAG_TDI"   LOC = "P143" | IOSTANDARD = "LVCMOS33";   
-NET "JTAG_TDO"   LOC = "P144" | IOSTANDARD = "LVCMOS33";   
+NET "JTAG_TDO"   LOC = "P143" | IOSTANDARD = "LVCMOS33";   
+NET "JTAG_TDI"   LOC = "P144" | IOSTANDARD = "LVCMOS33";   
 NET "JTAG_TCK"   LOC = "P142" | IOSTANDARD = "LVCMOS33";   
 NET "JTAG_TMS"   LOC = "P141" | IOSTANDARD = "LVCMOS33";   
 
@@ -73,5 +72,5 @@ NET "AVDD_GS0"    LOC = "P115"  | IOSTANDARD = "LVCMOS33";
 NET "AVDD_GS1"    LOC = "P114"  | IOSTANDARD = "LVCMOS33";  
 NET "AVDD_EN"     LOC = "P111"  | IOSTANDARD = "LVCMOS33"; 
 NET "AVDD_FAULT"  LOC = "P112"  | IOSTANDARD = "LVCMOS33";  
-  
+
 
